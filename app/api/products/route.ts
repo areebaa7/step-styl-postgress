@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
     
-    // Strict gender filtering (handles lowercase/uppercase safely)
     if (gender && gender !== 'ALL') {
       where.gender = { equals: gender.toLowerCase().trim(), mode: 'insensitive' };
     }
