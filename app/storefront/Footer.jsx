@@ -101,17 +101,6 @@ export default function Footer({ setCurrentPage }) {
           </ul>
         </div>
 
-        {/* Column 4 — Information */}
-        <div className="footer-column">
-          <h3 className="footer-heading">Information</h3>
-          <ul className="footer-links">
-            <li onClick={() => setCurrentPage('shop')}>About Us</li>
-            <li onClick={() => setCurrentPage('shop')}>Privacy Policy</li>
-            <li onClick={() => setCurrentPage('shop')}>Terms & Conditions</li>
-            <li onClick={() => setCurrentPage('affiliate')}>Affiliate Program</li>
-          </ul>
-        </div>
-
       </div>
 
       {/* Bottom Footer */}

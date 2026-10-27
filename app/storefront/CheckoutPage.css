@@ -1,10 +1,17 @@
+/* ==========================================
+   CHECKOUT PAGE MOBILE-RESPONSIVE CSS
+   ========================================== */
+
 .checkout-page-container {
+  width: 100%;
   max-width: 1160px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 5rem 1.5rem;
   font-family: inherit;
   color: #111827;
   background-color: #ffffff;
+  box-sizing: border-box;
+  overflow-x: hidden; /* Prevents horizontal leakage */
 }
 
 .checkout-page-container.success-state {
@@ -12,6 +19,7 @@
   align-items: center;
   justify-content: center;
   min-height: 70vh;
+  box-sizing: border-box;
 }
 
 .order-success-card {
@@ -21,7 +29,9 @@
   border-radius: 1rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.06);
   max-width: 500px;
+  width: 100%;
   border: 1px solid #E5E7EB;
+  box-sizing: border-box;
 }
 
 .success-icon {
@@ -58,6 +68,8 @@
   margin-bottom: 2.5rem;
   border-bottom: 1px solid #E5E7EB;
   padding-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .back-to-shop-btn {
@@ -75,6 +87,7 @@
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: -0.025em;
+  text-align: right;
 }
 
 .checkout-content-grid {
@@ -82,17 +95,22 @@
   grid-template-columns: 1fr 420px;
   gap: 3.5rem;
   align-items: start;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 900px) {
-  .checkout-content-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
+.checkout-form-column,
+.checkout-summary-column {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0; /* Prevents grid cell blowout */
 }
 
 .checkout-section-block {
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .block-title-row {
@@ -119,6 +137,7 @@
 .dedicated-checkout-form input,
 .dedicated-checkout-form select {
   width: 100%;
+  max-width: 100%;
   padding: 0.85rem 1rem;
   border: 1px solid #D1D5DB;
   border-radius: 0.5rem;
@@ -127,6 +146,7 @@
   margin-bottom: 1rem;
   background: #ffffff;
   color: #111827;
+  box-sizing: border-box;
 }
 
 .dedicated-checkout-form input:focus,
@@ -151,18 +171,15 @@
   accent-color: #7C3AED;
   margin: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .form-row-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-}
-
-@media (max-width: 600px) {
-  .form-row-grid {
-    grid-template-columns: 1fr;
-  }
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .delivery-method-card {
@@ -173,6 +190,8 @@
   background: #F5F3FF;
   padding: 1.15rem;
   border-radius: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .method-info {
@@ -180,6 +199,7 @@
   align-items: center;
   gap: 1rem;
   color: #7C3AED;
+  min-width: 0;
 }
 
 .method-info strong {
@@ -197,6 +217,7 @@
 .method-price {
   font-weight: 700;
   color: #111827;
+  flex-shrink: 0;
 }
 
 .payment-secure-note {
@@ -211,6 +232,8 @@
   border-radius: 0.5rem;
   overflow: hidden;
   background: #F9FAFB;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .payment-option-card {
@@ -220,6 +243,9 @@
   border-bottom: 1px solid #D1D5DB;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 .payment-option-card:last-child {
@@ -237,6 +263,8 @@
   font-weight: 600;
   font-size: 0.95rem;
   color: #111827;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .radio-flex input[type="radio"] {
@@ -245,6 +273,7 @@
   accent-color: #7C3AED;
   margin: 0;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .payment-subtext {
@@ -257,6 +286,7 @@
 
 .complete-order-btn {
   width: 100%;
+  max-width: 100%;
   background: #7C3AED;
   color: #ffffff;
   font-weight: 700;
@@ -267,6 +297,7 @@
   font-size: 1rem;
   transition: background 0.2s;
   margin-top: 1rem;
+  box-sizing: border-box;
 }
 
 .complete-order-btn:hover {
@@ -280,6 +311,8 @@
   border-radius: 0.5rem;
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Summary Column */
@@ -290,6 +323,8 @@
   padding: 1.5rem;
   position: sticky;
   top: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-sticky-box h3 {
@@ -305,6 +340,8 @@
   overflow-y: auto;
   margin-bottom: 1rem;
   padding-right: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-item-row {
@@ -312,6 +349,8 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .item-img-wrap {
@@ -349,6 +388,7 @@
 
 .item-details-wrap {
   flex-grow: 1;
+  min-width: 0;
 }
 
 .item-details-wrap h4 {
@@ -356,6 +396,9 @@
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .item-details-wrap p {
@@ -368,11 +411,14 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: #111827;
+  flex-shrink: 0;
 }
 
 .summary-totals-breakdown {
   border-top: 1px solid #E5E7EB;
   padding-top: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-totals-breakdown .line {
@@ -403,45 +449,67 @@
   padding: 0.65rem;
   border-radius: 0.35rem;
   border: 1px solid #E5E7EB;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .manual-payment-details {
   margin-top: 15px;
   padding: 15px;
   background-color: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .bank-info-box h4 {
   margin: 0 0 5px;
   font-size: 14px;
   color: #374151;
 }
+
 .bank-info-box p {
   margin: 2px 0;
   font-size: 13px;
   color: #6b7280;
+  word-break: break-all;
 }
+
 .bank-info-box hr {
   margin: 10px 0;
   border: none;
   border-top: 1px solid #e5e7eb;
 }
+
 .receipt-upload-box {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px dashed #d1d5db;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+.receipt-upload-box input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .upload-label {
   font-size: 13px;
   font-weight: 600;
   color: #374151;
   margin-bottom: 8px;
+  display: block;
 }
+
 .uploading-text {
   font-size: 12px;
   color: #6366f1;
   margin-left: 10px;
 }
+
 .upload-success {
   margin-top: 8px;
   font-size: 13px;
@@ -449,3 +517,156 @@
   font-weight: 500;
 }
 
+/* ==========================================
+   MOBILE BREAKPOINTS
+   ========================================== */
+@media (max-width: 900px) {
+  .checkout-content-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkout-page-container {
+    padding: 1rem 0.75rem 3rem 0.75rem;
+  }
+
+  .form-row-grid {
+    grid-template-columns: 1fr; /* Stack form inputs on mobile phones */
+  }
+
+  .order-success-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .checkout-header-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .checkout-brand-title {
+    text-align: left;
+  }
+}
+/* ==========================================
+   BANK TRANSFER OFFER POPUP MODAL STYLING
+   ========================================== */
+.bank-offer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  box-sizing: border-box;
+  backdrop-filter: blur(4px);
+}
+
+.bank-offer-modal-content {
+  background: #FFFFFF;
+  padding: 2.8rem 2.2rem;
+  border-radius: 16px;
+  max-width: 440px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  text-align: center;
+  border-top: 6px solid #7C3AED;
+}
+
+.bank-offer-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #F3F4F6;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1F2937;
+  transition: background 0.2s;
+}
+
+.bank-offer-close-btn:hover {
+  background: #E5E7EB;
+}
+
+.bank-offer-icon-box {
+  width: 64px;
+  height: 64px;
+  background: #F3E8FF;
+  color: #7C3AED;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem auto;
+}
+
+.bank-offer-badge {
+  display: inline-block;
+  background-color: #F3E8FF;
+  color: #7C3AED;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 0.8rem;
+}
+
+.bank-offer-modal-content h3 {
+  font-family: Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.8rem;
+}
+
+.bank-offer-modal-content p {
+  font-size: 0.92rem;
+  color: #4B5563;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.bank-offer-cta-btn {
+  width: 100%;
+  background-color: #7C3AED;
+  color: #FFFFFF;
+  border: none;
+  padding: 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+}
+
+.bank-offer-cta-btn:hover {
+  background-color: #6D28D9;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+  .bank-offer-modal-content {
+    padding: 2rem 1.25rem;
+    max-width: 90vw;
+  }
+}
