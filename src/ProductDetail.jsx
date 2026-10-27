@@ -9,6 +9,7 @@ import './ProductDetail.css';
 export default function ProductDetail({ product, onBack, onAddToCart }) {
   const hasVariants = product.colorVariants && product.colorVariants.length > 0;
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
   const activeVariant = hasVariants ? product.colorVariants[selectedColorIndex] : null;
 
   // Dynamic images and description switches based on color or default product data
@@ -130,9 +131,53 @@ export default function ProductDetail({ product, onBack, onAddToCart }) {
             <span className="pdp-discount-badge">{product.discount || '15% OFF'}</span>
           </div>
 
-          <p className="pdp-short-desc">
-            {activeDescription}
-          </p>
+          {/* Collapsible Product Description (Accordion / Toggle) */}
+          <div className="pdp-desc-accordion-container" style={{ marginBottom: "1.25rem" }}>
+            <div style={{
+              maxHeight: isDescExpanded ? "500px" : "4.2rem",
+              overflow: "hidden",
+              transition: "max-height 0.35s ease, opacity 0.3s ease",
+              position: "relative"
+            }}>
+              <p className="pdp-short-desc" style={{ marginBottom: 0 }}>
+                {activeDescription}
+              </p>
+              {!isDescExpanded && activeDescription.length > 90 && (
+                <div style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "1.8rem",
+                  background: "linear-gradient(to top, rgba(255,255,255,0.95), transparent)",
+                  pointerEvents: "none"
+                }} />
+              )}
+            </div>
+            {activeDescription.length > 80 && (
+              <button
+                type="button"
+                aria-expanded={isDescExpanded}
+                onClick={() => setIsDescExpanded(!isDescExpanded)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#7C3AED",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  padding: "4px 0",
+                  marginTop: "4px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px"
+                }}
+              >
+                <span>{isDescExpanded ? "Show Less" : "Read More"}</span>
+                {isDescExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
+          </div>
 
           {/* Color Option Swatches */}
           <div className="pdp-option-group">

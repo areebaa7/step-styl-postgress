@@ -6,7 +6,7 @@ import ProductDetail from './ProductDetail';
 import { fetchProducts } from './utils/shopApi';
 import './ShopPage.css';
 
-export default function KidsShopPage({ onAddToCart }) {
+export default function KidsShopPage({ onAddToCart, setCurrentPage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPageNum, setCurrentPageNum] = useState(1);
@@ -27,10 +27,13 @@ export default function KidsShopPage({ onAddToCart }) {
   }, []);
 
   const itemsPerPage = 6;
-  const strictKidsProducts = products.filter(item => 
-    (item.gender || '').toLowerCase() === 'kids' || 
-    (item.category || '').toLowerCase() === 'kids'
-  );
+  const strictKidsProducts = products.filter(item => {
+    const g = (item.gender || '').toLowerCase().trim();
+    const cat = (item.category || '').toLowerCase().trim();
+    const colName = (item.collection?.name || '').toLowerCase().trim();
+    const colGender = (item.collection?.targetGender || '').toLowerCase().trim();
+    return g === 'kids' || cat === 'kids' || colGender === 'kids' || colName.includes('kids');
+  });
 
   const totalPages = Math.ceil(strictKidsProducts.length / itemsPerPage) || 1;
   const paginatedProducts = strictKidsProducts.slice((currentPageNum - 1) * itemsPerPage, currentPageNum * itemsPerPage);
@@ -41,6 +44,7 @@ export default function KidsShopPage({ onAddToCart }) {
         product={selectedProduct} 
         onBack={() => setSelectedProduct(null)} 
         onAddToCart={onAddToCart}
+        setCurrentPage={setCurrentPage}
       />
     );
   }

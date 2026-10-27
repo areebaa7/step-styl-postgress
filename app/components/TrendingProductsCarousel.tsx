@@ -12,8 +12,9 @@ interface TrendingProductsCarouselProps {
 export default function TrendingProductsCarousel({ products }: TrendingProductsCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isInteractingRef = useRef(false);
 
-  // Infinite continuous auto-scroll effect
+  // Infinite continuous auto-scroll effect that respects customer touch/hover gestures
   useEffect(() => {
     if (!containerRef.current || !contentRef.current) return;
 
@@ -23,15 +24,15 @@ export default function TrendingProductsCarousel({ products }: TrendingProductsC
     let animationId: number;
 
     const scroll = () => {
-      // Scroll smoothly
-      container.scrollLeft += scrollSpeed;
+      if (!isInteractingRef.current) {
+        container.scrollLeft += scrollSpeed;
 
-      // When scroll reaches the end, smoothly return to start
-      if (container.scrollLeft >= content.scrollWidth - container.clientWidth - 10) {
-        // Use setTimeout to reset smoothly
-        setTimeout(() => {
-          container.scrollLeft = 0;
-        }, 500);
+        // When scroll reaches the end, smoothly return to start
+        if (container.scrollLeft >= content.scrollWidth - container.clientWidth - 10) {
+          setTimeout(() => {
+            if (container) container.scrollLeft = 0;
+          }, 500);
+        }
       }
 
       animationId = requestAnimationFrame(scroll);
@@ -63,7 +64,13 @@ export default function TrendingProductsCarousel({ products }: TrendingProductsC
         <div className="w-full">
           <div
             ref={containerRef}
-            className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar"
+            onMouseEnter={() => { isInteractingRef.current = true; }}
+            onMouseLeave={() => { isInteractingRef.current = false; }}
+            onTouchStart={() => { isInteractingRef.current = true; }}
+            onTouchEnd={() => { isInteractingRef.current = false; }}
+            onTouchCancel={() => { isInteractingRef.current = false; }}
+            className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x active:cursor-grabbing"
+            style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
           >
             <div ref={contentRef} className="flex gap-4 md:gap-6">
               {products.map((product, index) => (

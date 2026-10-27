@@ -228,7 +228,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating}
                 onClick={() => handleStatusUpdate('APPROVED')}
-                className="flex-1 min-w-[150px] rounded-lg bg-green-600 py-3 font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+                className="w-full sm:flex-1 sm:min-w-[150px] rounded-lg bg-green-600 py-3 font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
               >
                 {isUpdating ? 'Updating...' : selectedOrder.paymentMethod === 'COD' ? 'Record Payment Received' : 'Approve Payment'}
               </button>
@@ -236,7 +236,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating}
                 onClick={() => handleStatusUpdate('DISAPPROVED')}
-                className="flex-1 min-w-[150px] rounded-lg bg-red-600 py-3 font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                className="w-full sm:flex-1 sm:min-w-[150px] rounded-lg bg-red-600 py-3 font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
               >
                 {isUpdating ? 'Updating...' : 'Disapprove & Cancel'}
               </button>
@@ -252,7 +252,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating || prepaidNeedsApproval}
                 onClick={() => handleOrderAction('CONFIRM')}
-                className="flex-1 min-w-[170px] rounded-lg bg-purple-600 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full sm:flex-1 sm:min-w-[170px] rounded-lg bg-purple-600 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
                 title={prepaidNeedsApproval ? 'Approve prepaid payment first' : undefined}
               >
                 {isUpdating ? 'Updating...' : 'Confirm Order'}
@@ -263,7 +263,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating || prepaidNeedsApproval}
                 onClick={() => handleOrderAction('SHIP')}
-                className="flex-1 min-w-[170px] rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full sm:flex-1 sm:min-w-[170px] rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isUpdating ? 'Updating...' : 'Mark Shipped'}
               </button>
@@ -273,7 +273,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating || deliveryNeedsPayment}
                 onClick={() => handleOrderAction('DELIVER')}
-                className="flex-1 min-w-[170px] rounded-lg bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full sm:flex-1 sm:min-w-[170px] rounded-lg bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 title={deliveryNeedsPayment ? 'Record or approve payment first' : undefined}
               >
                 {isUpdating ? 'Updating...' : 'Mark Delivered'}
@@ -284,7 +284,7 @@ export default function AdminOrdersPanel() {
                 type="button"
                 disabled={isUpdating}
                 onClick={() => handleOrderAction('CANCEL')}
-                className="flex-1 min-w-[150px] rounded-lg border border-red-200 bg-white py-3 font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                className="w-full sm:flex-1 sm:min-w-[150px] rounded-lg border border-red-200 bg-white py-3 font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
               >
                 {isUpdating ? 'Updating...' : 'Cancel Order'}
               </button>
@@ -352,6 +352,46 @@ export default function AdminOrdersPanel() {
       setActionStatus({
         type: 'error',
         message: error instanceof Error ? error.message : 'Failed to update order.',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleQuickPaymentAction = async (orderId: string, action: 'APPROVED' | 'REJECTED') => {
+    try {
+      setIsUpdating(true);
+      const isApproved = action === 'APPROVED';
+      const paymentStatus = isApproved ? 'APPROVED' : 'DISAPPROVED';
+      const status = isApproved ? 'PAID' : 'CANCELLED';
+      const note = isApproved ? 'Payment approved by admin' : 'Payment rejected by admin';
+
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentStatus,
+          status,
+          adminNote: note,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update order');
+      }
+
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, paymentStatus, status } : o))
+      );
+      setActionStatus({
+        type: 'success',
+        message: `Order #${orderId} payment ${isApproved ? 'approved' : 'rejected'} successfully.`,
+      });
+    } catch (err: any) {
+      setActionStatus({
+        type: 'error',
+        message: err?.message || 'Failed to update order payment',
       });
     } finally {
       setIsUpdating(false);
@@ -562,18 +602,48 @@ export default function AdminOrdersPanel() {
                       </span>
                     </td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm('Are you sure you want to permanently delete this order?')) {
-                              handleDeleteOrder(order.id);
-                            }
-                          }}
-                          className="text-red-500 hover:text-red-700 transition"
-                          title="Delete Order"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {order.paymentStatus !== 'APPROVED' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuickPaymentAction(order.id, 'APPROVED');
+                              }}
+                              disabled={isUpdating}
+                              className="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-bold transition shadow-sm whitespace-nowrap disabled:opacity-50"
+                              title="Approve Payment"
+                            >
+                              Approve Payment
+                            </button>
+                          )}
+                          {order.paymentStatus !== 'DISAPPROVED' && order.status !== 'CANCELLED' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Reject payment for Order #${order.id}? This will cancel the order.`)) {
+                                  handleQuickPaymentAction(order.id, 'REJECTED');
+                                }
+                              }}
+                              disabled={isUpdating}
+                              className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition shadow-sm whitespace-nowrap disabled:opacity-50"
+                              title="Reject Payment"
+                            >
+                              Reject Payment
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Are you sure you want to permanently delete this order?')) {
+                                handleDeleteOrder(order.id);
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition rounded"
+                            title="Delete Order"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                 ))
@@ -769,3 +839,4 @@ export default function AdminOrdersPanel() {
     </div>
   );
 }
+

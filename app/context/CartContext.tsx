@@ -11,8 +11,8 @@ export interface CartItem {
   image?: string;
   quantity: number;
   size?: string;
-    color?: string;
-  
+  color?: string;
+  maxStock?: number;
 }
 
 interface CartContextValue {
@@ -222,12 +222,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
     setItems((previous) => {
       const existingIndex = previous.findIndex((entry) => itemKey(entry) === itemKey(item));
-      if (existingIndex === -1) return [...previous, { ...item, quantity }];
+      if (existingIndex === -1) {
+        if (item.maxStock !== undefined && item.maxStock <= 0) return previous;
+        const initialQty = item.maxStock !== undefined ? Math.min(quantity, item.maxStock) : quantity;
+        return [...previous, { ...item, quantity: initialQty }];
+      }
 
       const next = [...previous];
+      const existing = next[existingIndex];
+      const maxAllowed = item.maxStock ?? existing.maxStock;
+      const requestedQty = existing.quantity + quantity;
+      const finalQty = maxAllowed !== undefined ? Math.min(requestedQty, maxAllowed) : requestedQty;
       next[existingIndex] = {
-        ...next[existingIndex],
-        quantity: next[existingIndex].quantity + quantity,
+        ...existing,
+        ...item,
+        quantity: finalQty,
       };
       return next;
     });
@@ -241,7 +250,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateQuantity = (id: string, quantity: number, size?: string, color?: string) => {
     const key = itemKey({ id, size, color });
     const safeQuantity = Math.max(1, quantity);
-    setItems((previous) => previous.map((item) => itemKey(item) === key ? { ...item, quantity: safeQuantity } : item));
+    setItems((previous) => previous.map((item) => {
+      if (itemKey(item) !== key) return item;
+      const maxAllowed = item.maxStock;
+      const finalQty = maxAllowed !== undefined ? Math.min(safeQuantity, maxAllowed) : safeQuantity;
+      return { ...item, quantity: finalQty };
+    }));
   };
 
   const clearCart = () => {

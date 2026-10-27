@@ -350,8 +350,24 @@ export default function CheckoutPage({ cartItems = [], setCurrentPage, onOrderSu
               </div>
             </div>
 
-            <button type="submit" className="complete-order-btn" disabled={loading}>
-              {loading ? 'Processing Order...' : 'Complete Order'}
+            {error && (
+              <div className="checkout-alert-error mb-4" style={{ marginTop: '1rem', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', padding: '12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600 }}>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" className="complete-order-btn flex items-center justify-center gap-2" disabled={loading}>
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white inline-block mr-2" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  <span>Processing Order...</span>
+                </>
+              ) : (
+                'Complete Order'
+              )}
             </button>
           </form>
         </div>

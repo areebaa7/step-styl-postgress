@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { AUTH_COOKIE_NAME, verifyAuthToken } from '@/lib/auth';
-import { sendOrderApprovedEmail, sendOrderRejectedEmail } from '@/lib/email';
+import { sendOrderApprovedEmail, sendOrderRejectedEmail, sendOrderDeliveredEmail } from '@/lib/email';
 
 export async function PATCH(
   request: NextRequest,
@@ -57,7 +57,7 @@ export async function PATCH(
 
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, status: true, shippingEmail: true, shippingName: true },
+      select: { id: true, status: true, paymentStatus: true, shippingEmail: true, shippingName: true },
     });
 
     if (!existingOrder) {
@@ -99,19 +99,32 @@ export async function PATCH(
       data: updateData,
     });
 
-    // Trigger emails ONLY if status changed
-    if (updateData.status && updateData.status !== existingOrder.status && existingOrder.shippingEmail) {
-      const newStatus = updateData.status;
-      const approvalStatuses = ['PAID', 'PROCESSING', 'PAYMENT_VERIFIED'];
-      const rejectionStatuses = ['CANCELLED', 'REJECTED_FAILED'];
-      
+    // Trigger emails on Payment Approval or Rejection
+    if (existingOrder.shippingEmail) {
+      const isApproved =
+        (updateData.paymentStatus === 'APPROVED' && existingOrder.paymentStatus !== 'APPROVED') ||
+        (['PAID', 'PROCESSING', 'PAYMENT_VERIFIED', 'APPROVED'].includes(updateData.status) &&
+          !['PAID', 'PROCESSING', 'PAYMENT_VERIFIED', 'APPROVED'].includes(existingOrder.status));
+
+      const isRejected =
+        (updateData.paymentStatus === 'DISAPPROVED' && existingOrder.paymentStatus !== 'DISAPPROVED') ||
+        (['CANCELLED', 'REJECTED_FAILED', 'DISAPPROVED'].includes(updateData.status) &&
+          !['CANCELLED', 'REJECTED_FAILED', 'DISAPPROVED'].includes(existingOrder.status));
+
+      const isDelivered =
+        ['DELIVERED', 'COMPLETED'].includes(updateData.status) &&
+        !['DELIVERED', 'COMPLETED'].includes(existingOrder.status);
+
       try {
-        if (approvalStatuses.includes(newStatus)) {
+        if (isApproved) {
           await sendOrderApprovedEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId);
           console.log(`Approval email sent to ${existingOrder.shippingEmail}`);
-        } else if (rejectionStatuses.includes(newStatus)) {
+        } else if (isRejected) {
           await sendOrderRejectedEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId);
           console.log(`Rejection email sent to ${existingOrder.shippingEmail}`);
+        } else if (isDelivered) {
+          await sendOrderDeliveredEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId);
+          console.log(`Delivered success email sent to ${existingOrder.shippingEmail}`);
         }
       } catch (emailErr) {
         console.error('Failed to send status update email:', emailErr);

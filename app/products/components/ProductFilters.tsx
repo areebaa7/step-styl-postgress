@@ -114,13 +114,14 @@ export default function ProductFilters({ onFilterChange, initialFilters }: Produ
               { id: '', label: 'All' },
               { id: 'MEN', label: 'Men' },
               { id: 'WOMEN', label: 'Women' },
+              { id: 'KIDS', label: 'Kids' },
               { id: 'UNISEX', label: 'Unisex' }
             ].map((g) => (
               <button
                 key={g.id}
                 onClick={() => handleChange('gender', g.id)}
                 className={`text-center px-4 py-2 rounded-lg transition-all text-xs font-bold  tracking-wide border ${
-                  filters.gender === g.id
+                  (filters.gender || '').toUpperCase() === g.id.toUpperCase()
                     ? 'bg-[#6B21A8] text-white border-[#6B21A8] shadow-md'
                     : 'text-gray-600 border-gray-100 hover:bg-[#F5F3FF] hover:text-[#6B21A8]'
                 }`}

@@ -252,6 +252,55 @@ html {
   animation: admin-tab-enter 140ms ease-out;
 }
 
+/* ===================================================
+   Admin Panel - Mobile Responsiveness (Task 2)
+   =================================================== */
+
+/* Prevent horizontal overflow at the admin root */
+.admin-root,
+.admin-tab-panel,
+.admin-tab-panel > * {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* All scrollable table containers in admin */
+.admin-tab-panel .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 767px) {
+  /* Ensure admin page body never leaks horizontally */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Stack admin header actions vertically */
+  .admin-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  /* Admin stat/metrics grids collapse to single column */
+  .admin-tab-panel .grid-cols-4,
+  .admin-tab-panel .lg\:grid-cols-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-tab-panel .grid-cols-3,
+  .admin-tab-panel .lg\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ensure form inputs in admin don't overflow */
+  .admin-tab-panel input,
+  .admin-tab-panel select,
+  .admin-tab-panel textarea {
+    max-width: 100%;
+  }
+}
 .admin-tab-panel select:not([multiple]):not([data-custom-chevron="true"]) {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");

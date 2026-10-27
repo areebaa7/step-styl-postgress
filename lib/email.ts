@@ -201,3 +201,15 @@ export async function sendOrderRejectedEmail(to: string, name: string, orderId: 
     </div>`;
   return sendEmail({ to, subject, html });
 }
+
+export async function sendOrderDeliveredEmail(to: string, name: string, orderId: string) {
+  const subject = 'Your Step & Styl Order Has Been Delivered! 🎉';
+  const html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1F2937;">
+      <h2 style="color: #9b4de0;">Delivered with Love!</h2>
+      <p>Hi ${name || 'Customer'},</p>
+      <p>Your order <strong>#${orderId}</strong> has been marked as delivered.</p>
+      <p>We hope you love your new footwear! If you enjoy your purchase, please take a moment to leave a review and share your style with us.</p>
+      <p style="margin-top: 24px;">Thank you for choosing Step & Styl!</p>
+    </div>`;
+  return sendEmail({ to, subject, html });
+}

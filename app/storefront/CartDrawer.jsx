@@ -6,6 +6,7 @@ import { X, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import './CartDrawer.css';
 
 export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem, setCurrentPage }) {
+  const [drawerStockWarning, setDrawerStockWarning] = React.useState(null);
 
   const subtotal = cartItems.reduce((acc, item) => {
     const cleanPrice = Number(item.price) || 0;
@@ -41,7 +42,12 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
               </button>
             </div>
 
-            <div className="cart-promo-banner">
+            {drawerStockWarning && (
+      <div className="cart-promo-banner" style={{ backgroundColor: '#FEF2F2', color: '#B91C1C', borderColor: '#FCA5A5' }}>
+        ⚠️ {drawerStockWarning}
+      </div>
+    )}
+    <div className="cart-promo-banner">
               🎉 <strong>Open Parcel Then Pay</strong> enabled on all orders!
             </div>
 
@@ -73,7 +79,14 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
                           <div className="cart-qty-box">
                             <button onClick={() => onUpdateQuantity(index, item.quantity - 1)}>-</button>
                             <span>{item.quantity}</span>
-                            <button onClick={() => onUpdateQuantity(index, item.quantity + 1)}>+</button>
+                            <button onClick={() => {
+      if (item.maxStock !== undefined && item.quantity >= item.maxStock) {
+        setDrawerStockWarning(`Only ${item.maxStock} item(s) available in stock.`);
+        setTimeout(() => setDrawerStockWarning(null), 2500);
+        return;
+      }
+      onUpdateQuantity(index, item.quantity + 1);
+    }}>+</button>
                           </div>
                           <button className="cart-delete-btn" onClick={() => onRemoveItem(index)}>
                             <Trash2 size={16} />

@@ -332,6 +332,36 @@
   transform: translateY(-2px);
 }
 
+.pdp-buy-now-btn {
+  width: 100%;
+  background-color: #9b4de0;
+  color: #FFFFFF;
+  border: none;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(155, 77, 224, 0.35);
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pdp-buy-now-btn:hover:not(:disabled) {
+  background-color: #8537c9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(155, 77, 224, 0.45);
+}
+
+.pdp-buy-now-btn:disabled {
+  background-color: #D1D5DB;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .pdp-success-alert {
   font-size: 0.85rem;
   color: #16A34A;

@@ -29,6 +29,7 @@ interface ProductFormState {
   specifications: string;
   variants: ProductVariant[];
   inStock: boolean;
+  stockQuantity: string;
   discount: string;
   sendPromoEmail: boolean;
 }
@@ -91,6 +92,7 @@ const defaultFormState: ProductFormState = {
   specifications: '',
   variants: [],
   inStock: true,
+  stockQuantity: '10',
   discount: '0',
   sendPromoEmail: false,
 };
@@ -297,8 +299,21 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
     setSelectedProduct(product);
     
     // Explicitly parse and normalize gender and category without cross-contamination
-    const rawGender = (product as any).gender ? String((product as any).gender).toLowerCase().trim() : 'men';
-    const rawCategory = product.category ? String(product.category).toLowerCase().trim() : (rawGender === 'kids' ? 'kids' : 'sneakers');
+    let rawGender = (product as any).gender ? String((product as any).gender).toLowerCase().trim() : '';
+    const colTarget = String(product.collection?.targetGender || '').toUpperCase();
+    const colName = String(product.collection?.name || '').toLowerCase();
+    const cat = String(product.category || '').toLowerCase();
+
+    if (!rawGender || rawGender === 'men') {
+      if (colTarget === 'WOMEN' || colName.includes('women') || cat === 'bridal') {
+        rawGender = 'women';
+      } else if (colTarget === 'KIDS' || colName.includes('kids') || cat === 'kids') {
+        rawGender = 'kids';
+      } else if (!rawGender) {
+        rawGender = 'men';
+      }
+    }
+    const rawCategory = product.category ? String(product.category).toLowerCase().trim() : (rawGender === 'kids' ? 'kids' : rawGender === 'women' ? 'casual' : 'sneakers');
 
     setFormValues({
       slug: product.slug, 
@@ -319,6 +334,7 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
       specifications: specsToString(product.specifications),
       variants: product.variants || [],
       inStock: product.inStock,
+      stockQuantity: String((product.variants || []).reduce((sum, v) => sum + (Number(v.stock) || 0), 0) || (product.inStock ? 10 : 0)),
       discount: String(product.discount || 0),
       sendPromoEmail: false,
     });
@@ -383,6 +399,69 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
     }));
   };
 
+  const handleGenderChange = (newGender: string) => {
+    const cleanGender = newGender.toLowerCase().trim();
+    setFormValues((prev) => {
+      let nextCategory = prev.category;
+      if (cleanGender === 'women') {
+        if (!['casual', 'bridal', 'formal'].includes(nextCategory)) {
+          nextCategory = 'casual';
+        }
+      } else if (cleanGender === 'kids') {
+        nextCategory = 'kids';
+      } else if (cleanGender === 'men') {
+        if (!['sneakers', 'formal', 'casual'].includes(nextCategory)) {
+          nextCategory = 'sneakers';
+        }
+      }
+      return {
+        ...prev,
+        gender: cleanGender,
+        category: nextCategory,
+      };
+    });
+  };
+
+  const handleCollectionChange = (collectionId: string) => {
+    setFormValues((prev) => {
+      const selectedCol = collections.find((c) => c.id === collectionId || c.name.toLowerCase() === collectionId.toLowerCase());
+      let nextGender = prev.gender;
+      let nextCategory = prev.category;
+
+      if (selectedCol) {
+        if (selectedCol.targetGender === 'WOMEN' || selectedCol.name.toLowerCase().includes('women')) {
+          nextGender = 'women';
+          if (!['casual', 'bridal', 'formal'].includes(nextCategory)) nextCategory = 'casual';
+        } else if (selectedCol.targetGender === 'KIDS' || selectedCol.name.toLowerCase().includes('kids')) {
+          nextGender = 'kids';
+          nextCategory = 'kids';
+        } else if (selectedCol.targetGender === 'MEN' || selectedCol.name.toLowerCase().includes('men')) {
+          nextGender = 'men';
+          if (!['sneakers', 'formal', 'casual'].includes(nextCategory)) nextCategory = 'sneakers';
+        }
+      } else {
+        const lower = collectionId.toLowerCase();
+        if (lower.includes('women')) {
+          nextGender = 'women';
+          if (!['casual', 'bridal', 'formal'].includes(nextCategory)) nextCategory = 'casual';
+        } else if (lower.includes('kids')) {
+          nextGender = 'kids';
+          nextCategory = 'kids';
+        } else if (lower.includes('men')) {
+          nextGender = 'men';
+          if (!['sneakers', 'formal', 'casual'].includes(nextCategory)) nextCategory = 'sneakers';
+        }
+      }
+
+      return {
+        ...prev,
+        collectionId,
+        gender: nextGender,
+        category: nextCategory,
+      };
+    });
+  };
+
   const addMatrixColor = () => setMatrixColors([...matrixColors, { name: '' }]);
   const updateMatrixColor = (index: number, key: keyof MatrixColor, value: string) => {
     const next = [...matrixColors];
@@ -438,6 +517,16 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
       });
 
       const resolvedColors = matrixColors.map(c => c.name.trim()).filter(Boolean);
+      const parsedStockQty = Math.max(0, parseInt(formValues.stockQuantity, 10) || 0);
+      const isActuallyInStock = formValues.inStock && parsedStockQty > 0;
+      if (compiledVariants.length === 0 && parsedStockQty > 0) {
+        compiledVariants.push({
+          id: `${formValues.slug}-default`,
+          color: resolvedColors[0] || 'Default',
+          size: 'One size',
+          stock: parsedStockQty,
+        });
+      }
 
       const payload = {
         slug: formValues.slug,
@@ -457,7 +546,8 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
         features: csvToArray(formValues.features),
         specifications: specsToObject(formValues.specifications),
         variants: compiledVariants,
-        inStock: formValues.inStock,
+        stock_quantity: parsedStockQty,
+        inStock: isActuallyInStock,
         discount: formValues.discount ? Number(formValues.discount) : 0,
         sendPromoEmail: formValues.sendPromoEmail,
       };
@@ -597,8 +687,8 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
           <>
           <div className="grid gap-6 md:grid-cols-2">
           {paginatedProducts.map((product) => (
-            <div key={product.id} className="border border-gray-200 rounded-2xl p-4 shadow-sm flex gap-4 bg-white hover:shadow-md transition-shadow">
-              <div className="w-28 h-28 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 relative">
+            <div key={product.id} className="border border-gray-200 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row gap-4 bg-white hover:shadow-md transition-shadow w-full max-w-full overflow-hidden">
+              <div className="w-full sm:w-28 h-40 sm:h-28 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 relative">
                 <Image src={product.image || '/logo_main.png'} alt={product.title} fill className="object-cover"  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
               </div>
               <div className="flex-1 space-y-2">
@@ -680,10 +770,10 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-md">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[calc(100vh-2rem)] flex flex-col border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] flex flex-col border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
             {/* Sticky Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
               <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 {modalMode === 'create' ? 'Add New Product' : 'Edit Product Details'}
               </h3>
@@ -697,7 +787,7 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-6">
               {status.type !== 'idle' && (
                   <div className="mb-4">
                     <AdminNotice type={status.type} message={status.message} />
@@ -719,17 +809,39 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
                     <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Permanent unique identifier</p>
                   </div>
                   <div>
-                      <label className="block text-xs font-black text-purple-600 uppercase tracking-widest mb-1.5">Collection</label>
+                      <label className="block text-xs font-black text-purple-600 uppercase tracking-widest mb-1.5">Collection / Category</label>
                       <select
                         value={formValues.collectionId}
-                        onChange={(e) => handleInputChange('collectionId', e.target.value)}
+                        onChange={(e) => handleCollectionChange(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:bg-white outline-none transition-all appearance-none bg-no-repeat bg-right pr-10 hover:border-slate-400"
                         style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23475569\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundSize: '1.5em' }}
                       >
-                        <option value="">No Collection</option>
-                        {collections.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
+                        <option value="">No Collection (Unassigned)</option>
+                        <optgroup label="Default Category Collections">
+                          {['Men Collection', 'Women Collection', 'Kids Collection'].map((defName) => {
+                            const found = collections.find((c) => c.name.toLowerCase() === defName.toLowerCase());
+                            return (
+                              <option key={defName} value={found ? found.id : defName}>
+                                {defName}
+                              </option>
+                            );
+                          })}
+                        </optgroup>
+                        {collections.filter(
+                          (c) => !['men collection', 'women collection', 'kids collection'].includes(c.name.toLowerCase())
+                        ).length > 0 && (
+                          <optgroup label="Custom Database Collections">
+                            {collections
+                              .filter(
+                                (c) => !['men collection', 'women collection', 'kids collection'].includes(c.name.toLowerCase())
+                              )
+                              .map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -738,8 +850,8 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
                     <div>
                       <label className="block text-xs font-black text-purple-600 uppercase tracking-widest mb-1.5">Target Section (Gender) *</label>
                       <select
-                        value={formValues.gender || 'men'}
-                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                        value={(formValues.gender || 'men').toLowerCase().trim()}
+                        onChange={(e) => handleGenderChange(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:bg-white outline-none transition-all appearance-none bg-no-repeat bg-right pr-10 hover:border-slate-400"
                         style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23475569\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundSize: '1.5em' }}
                       >
@@ -853,17 +965,50 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="flex flex-col sm:flex-row gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div>
+                    <label className="block text-xs font-black text-purple-600 uppercase tracking-widest mb-1.5">
+                      Stock Quantity (Units) *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      required
+                      value={formValues.stockQuantity}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const num = parseInt(val, 10);
+                        handleInputChange('stockQuantity', val);
+                        if (!isNaN(num)) {
+                          handleInputChange('inStock', num > 0);
+                        }
+                      }}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-400 focus:bg-white outline-none transition-all placeholder:text-slate-400 hover:border-slate-400 font-semibold"
+                      placeholder="e.g. 50"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 items-start sm:items-center justify-between">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div className="relative flex items-center">
                         <input
                           type="checkbox"
                           checked={formValues.inStock}
-                          onChange={(e) => handleInputChange('inStock', e.target.checked)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            handleInputChange('inStock', checked);
+                            if (!checked) {
+                              handleInputChange('stockQuantity', '0');
+                            } else if ((parseInt(formValues.stockQuantity, 10) || 0) <= 0) {
+                              handleInputChange('stockQuantity', '10');
+                            }
+                          }}
                           className="w-5 h-5 border-2 border-slate-300 rounded text-purple-600 focus:ring-purple-500 transition-colors"
                         />
                       </div>
-                      <span className="text-sm font-bold text-gray-700 group-hover:text-purple-600 transition-colors">In Stock</span>
+                      <span className="text-sm font-bold text-gray-700 group-hover:text-purple-600 transition-colors">
+                        In Stock ({formValues.inStock ? 'Available' : 'Out of Stock'})
+                      </span>
                     </label>
 
                     {modalMode === 'create' && (
@@ -1131,7 +1276,7 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
             </div>
 
             {/* Sticky Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/80 backdrop-blur-sm">
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-gray-50/80 backdrop-blur-sm">
               <button
                 type="button"
                 onClick={closeModal}
@@ -1154,3 +1299,4 @@ export default function AdminProductsPanel({ onProductsCountChange }: AdminProdu
     </div>
   );
 }
+

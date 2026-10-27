@@ -221,7 +221,7 @@ export default function AdminDashboard() {
   ).sort((a, b) => b.count - a.count);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="admin-root min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Admin Header */}
       <header className="bg-[#A855F7] shadow-lg shadow-purple-500/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0">
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-full overflow-x-hidden">
         {/* Tabs */}
         <div className="mb-8 rounded-2xl border border-gray-200 bg-gray-50/80 p-2 shadow-sm">
           <nav
@@ -309,7 +309,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab Content */}
-        <div className="min-h-[65vh] overflow-x-hidden bg-white rounded-lg shadow-sm p-6">
+        <div className="min-h-[65vh] w-full max-w-full overflow-x-hidden bg-white rounded-xl shadow-sm p-3 sm:p-6">
           <div key={activeTab} className="admin-tab-panel">
           {activeTab === 'overview' && (
             <div>
@@ -319,7 +319,7 @@ export default function AdminDashboard() {
                   <AdminNotice type="error" message={overviewError} />
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-100">
                   <p className="text-gray-600 text-sm mb-2">Total Products</p>
                   <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mt-8">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <button
                     onClick={() => setActiveTab('products')}
                     className="bg-white border-2 border-purple-600 text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-all"
@@ -690,3 +690,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

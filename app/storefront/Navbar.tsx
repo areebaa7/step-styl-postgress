@@ -4,6 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, User, Heart, ShoppingBag, Menu, X, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWishlist } from '@/app/context/WishlistContext';
+import LiveSearchBar from '@/app/components/LiveSearchBar';
 import './Navbar.css';
 
 export default function Navbar({ 
@@ -23,8 +25,9 @@ export default function Navbar({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
   const [authUser, setAuthUser] = useState<any>(null);
+  const { totalCount: liveWishlistCount } = useWishlist();
+  const effectiveWishlistCount = liveWishlistCount ?? wishlistCount;
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -59,14 +62,6 @@ export default function Navbar({
   const handleSearchToggle = () => {
     setSearchOpen(!searchOpen);
     if (onOpenSearch) onOpenSearch();
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setCurrentPage('shop');
-      setSearchOpen(false);
-    }
   };
 
   return (
@@ -118,7 +113,7 @@ export default function Navbar({
             </button>
             <button className="icon-btn" aria-label="Wishlist" onClick={() => handleNavClick('wishlist')} title="Wishlist">
               <Heart size={20} />
-              {wishlistCount > 0 && <span className="badge">{wishlistCount}</span>}
+              {effectiveWishlistCount > 0 && <span className="badge">{effectiveWishlistCount}</span>}
             </button>
             
             <button id="cart-icon" className="icon-btn cart-wrapper" aria-label="Cart" onClick={onOpenCart} title="Cart">
@@ -129,33 +124,11 @@ export default function Navbar({
 
         </div>
 
-        {/* Expandable Search Input Bar */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div 
-              className="navbar-search-overlay"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: '70px' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <form onSubmit={handleSearchSubmit} className="search-form-container">
-                <Search size={18} className="search-input-icon" />
-                <input 
-                  type="text" 
-                  placeholder="Search for footwear, sneakers, collections..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoFocus
-                  className="navbar-search-input"
-                />
-                <button type="button" onClick={() => setSearchOpen(false)} className="search-close-btn">
-                  <X size={18} />
-                </button>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Live Global Search Modal Overlay */}
+        <LiveSearchBar 
+          isOpen={searchOpen} 
+          onClose={() => setSearchOpen(false)} 
+        />
 
         {/* Mobile Menu Drawer */}
         <AnimatePresence>

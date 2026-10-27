@@ -1,6 +1,6 @@
 let generatedAdminNote: string | null = null;
 let affiliateRef: string | null = null;
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { createHash } from 'node:crypto';
 import prisma from '@/lib/prisma';
@@ -832,22 +832,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        await tx.marketingEvent.create({
-          data: {
-            id: purchaseEventId(createdOrder.id),
-            eventName: 'Purchase',
-            url: '/order-success',
-            eventData: {
-              orderId: createdOrder.id,
-              value: numericTotal,
-              currency: 'PKR',
-              numItems: sanitizedItems.reduce((sum, item) => sum + item.quantity, 0),
-              contentIds: sanitizedItems.map((item) => item.id),
-              paymentMethod: normalizedMethod,
-              source: 'server-order-transaction',
-            },
-          },
-        });
+
 
         if (promoCode) {
           await tx.promoCode.update({
@@ -898,39 +883,74 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    const growthTasks: Promise<unknown>[] = [];
-    if (shippingAddress.newsletters) {
-      const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-      growthTasks.push(subscribeNewsletter({
-        email: order.shippingEmail,
-        source: 'checkout',
-        consent: true,
-        ipAddress: forwardedFor || request.headers.get('x-real-ip'),
-        userAgent: request.headers.get('user-agent'),
-      }));
-    }
-    if (payload?.userId) {
-      growthTasks.push(markAbandonedCartRecovered(payload.userId));
-    }
-    if (growthTasks.length > 0) {
-      const growthResults = await Promise.allSettled(growthTasks);
-      growthResults.forEach((result) => {
-        if (result.status === 'rejected') console.warn('Growth integration task failed:', result.reason);
-      });
-    }
+    // Asynchronously dispatch non-critical background jobs (emails, newsletter, analytics)
+    // without blocking the user response, optimizing order completion speed by seconds.
+    const runPostCheckoutTasks = async () => {
+      try {
+        const growthTasks: Promise<unknown>[] = [];
 
-    await sendEmail({
-      to: order.shippingEmail,
-      subject: 'We received your Step & Styl order',
-      html: buildOrderSummaryEmail({
-        title: 'Order received!',
-        order: { ...order, items: sanitizedItems },
-        message: paymentMethod === 'direct'
-          ? 'Your Online Payment order has been received. We will verify your payment receipt and process your order shortly.'
-          : 'Your Cash on Delivery order has been received. Our team will prepare it for delivery shortly.',
-      }),
-    });
+        // Non-blocking analytics logging moved out of transaction for high-speed checkout
+        growthTasks.push(
+          prisma.marketingEvent.create({
+            data: {
+              id: purchaseEventId(order.id),
+              eventName: 'Purchase',
+              url: '/order-success',
+              eventData: {
+                orderId: order.id,
+                value: numericTotal,
+                currency: 'PKR',
+                numItems: sanitizedItems.reduce((sum, item) => sum + item.quantity, 0),
+                contentIds: sanitizedItems.map((item) => item.id),
+                paymentMethod: normalizedMethod,
+                source: 'server-order-background',
+              },
+            },
+          }).catch((err) => console.warn('Failed to record marketing purchase event:', err))
+        );
+        if (shippingAddress.newsletters) {
+          const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+          growthTasks.push(
+            subscribeNewsletter({
+              email: order.shippingEmail,
+              source: 'checkout',
+              consent: true,
+              ipAddress: forwardedFor || request.headers.get('x-real-ip'),
+              userAgent: request.headers.get('user-agent'),
+            }),
+          );
+        }
+        if (payload?.userId) {
+          growthTasks.push(markAbandonedCartRecovered(payload.userId));
+        }
+        if (growthTasks.length > 0) {
+          const growthResults = await Promise.allSettled(growthTasks);
+          growthResults.forEach((result) => {
+            if (result.status === 'rejected') console.warn('Growth integration task failed:', result.reason);
+          });
+        }
 
+        await sendEmail({
+          to: order.shippingEmail,
+          subject: 'We received your Step & Styl order',
+          html: buildOrderSummaryEmail({
+            title: 'Order received!',
+            order: { ...order, items: sanitizedItems },
+            message: paymentMethod === 'direct'
+              ? 'Your Online Payment order has been received. We will verify your payment receipt and process your order shortly.'
+              : 'Your Cash on Delivery order has been received. Our team will prepare it for delivery shortly.',
+          }),
+        }).catch((err) => console.error('Order email delivery failed in background:', err));
+      } catch (bgError) {
+        console.error('Post-checkout background processing error:', bgError);
+      }
+    };
+
+    if (typeof after === 'function') {
+      after(runPostCheckoutTasks);
+    } else {
+      void runPostCheckoutTasks();
+    }
     const conversionToken = await signPurchaseClaim(order.id);
     return NextResponse.json(
       {

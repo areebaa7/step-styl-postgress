@@ -32,17 +32,50 @@ import AuthModal from './storefront/AuthModal';
 import WhatsAppButton from './components/WhatsAppButton'; 
 import ShippingDeliveryPage from './storefront/ShippingDeliveryPage';
 import ReturnsExchangesPage from './storefront/ReturnsExchangesPage';
+import WishlistPage from './storefront/WishlistPage';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
 
+  // Synchronize initial page from URL query params or restore view
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const view = searchParams.get('view');
-    if (view && ['home', 'shop', 'women', 'men', 'kids', 'checkout', 'affiliate', 'shipping-delivery', 'returns-exchanges'].includes(view)) {
+    if (view && ['home', 'shop', 'women', 'men', 'kids', 'checkout', 'affiliate', 'shipping-delivery', 'returns-exchanges', 'wishlist'].includes(view)) {
       setCurrentPage(view);
     }
+
+    const handlePopState = (e: PopStateEvent) => {
+      const stateView = e.state?.view;
+      if (stateView) {
+        setCurrentPage(stateView);
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        const currentView = params.get('view');
+        if (currentView && ['home', 'shop', 'women', 'men', 'kids', 'checkout', 'affiliate', 'shipping-delivery', 'returns-exchanges', 'wishlist'].includes(currentView)) {
+          setCurrentPage(currentView);
+        } else {
+          setCurrentPage('home');
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // History-aware page navigation
+  const handleNavigatePage = (page: string) => {
+    setCurrentPage(page);
+    try {
+      if (typeof window !== 'undefined') {
+        const newUrl = page === 'home' ? window.location.pathname : `?view=${page}`;
+        window.history.pushState({ view: page }, '', newUrl);
+      }
+    } catch {
+      // Fallback
+    }
+  };
   const [showSplash, setShowSplash] = useState(true);
   
   const { items: cartItems, addItem, removeItem, updateQuantity, clearCart, isCartOpen, setIsCartOpen } = useCart();
@@ -109,7 +142,7 @@ export default function Home() {
 
       {/* Top announcement bar & Nav bar sequence */}
       <Navbar 
-        setCurrentPage={setCurrentPage} 
+        setCurrentPage={handleNavigatePage} 
         cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} 
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuthModal={handleOpenAuthModal}
@@ -120,56 +153,56 @@ export default function Home() {
         {currentPage === 'home' ? (
           <>
             {/* 1. Hero section */}
-            <Hero setCurrentPage={setCurrentPage} />
+            <Hero setCurrentPage={handleNavigatePage} />
             
             {/* 2. Trust badge (purple ticker) */}
             <TrustBadge />
 
             {/* 3. Women favorite */}
-            <WomenFavorites setCurrentPage={setCurrentPage} />
+            <WomenFavorites setCurrentPage={handleNavigatePage} />
 
             {/* 4. Affiliate program */}
-            <AffiliateSection setCurrentPage={setCurrentPage} />
+            <AffiliateSection setCurrentPage={handleNavigatePage} />
 
             {/* 5. Flash sale */}
-            <DynamicSaleBanner setCurrentPage={setCurrentPage} />
+            <DynamicSaleBanner setCurrentPage={handleNavigatePage} />
 
             {/* 6. Kids favorite */}
-            <KidsBanner setCurrentPage={setCurrentPage} />
+            <KidsBanner setCurrentPage={handleNavigatePage} />
 
             {/* 7. Trust Benefits banner placed right under Kids Banner with clean spacing */}
             <div className="mt-4">
-              <TrustBenefits setCurrentPage={setCurrentPage} />
+              <TrustBenefits setCurrentPage={handleNavigatePage} />
             </div>
 
             {/* 8. Men Collection & styles carousel */}
-            <MensCollectionBanner setCurrentPage={setCurrentPage} />
-            <MensStylesCarousel setCurrentPage={setCurrentPage} />
+            <MensCollectionBanner setCurrentPage={handleNavigatePage} />
+            <MensStylesCarousel setCurrentPage={handleNavigatePage} />
 
             {/* 9. High demand products */}
             <div id="new-arrivals-section">
-              <NewArrivals setCurrentPage={setCurrentPage} />
+              <NewArrivals setCurrentPage={handleNavigatePage} />
             </div>
 
             {/* 10. Costumer review */}
             <CustomerReviews />
-            <DiscoverMore setCurrentPage={setCurrentPage} />
+            <DiscoverMore setCurrentPage={handleNavigatePage} />
 
             {/* 11. Follow us */}
             <FollowUsSection />
           </>
         ) : currentPage === 'shop' ? (
-          <ShopPage setCurrentPage={setCurrentPage} onAddToCart={handleAddToCart} />
+          <ShopPage setCurrentPage={handleNavigatePage} onAddToCart={handleAddToCart} />
         ) : currentPage === 'women' ? (
-          <WomenShopPage onAddToCart={handleAddToCart} />
+          <WomenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
         ) : currentPage === 'men' ? (
-          <MenShopPage onAddToCart={handleAddToCart} />
+          <MenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
         ) : currentPage === 'kids' ? (
-          <KidsShopPage onAddToCart={handleAddToCart} />
+          <KidsShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
         ) : currentPage === 'checkout' ? (
           <CheckoutPage 
             cartItems={cartItems} 
-            setCurrentPage={setCurrentPage} 
+            setCurrentPage={handleNavigatePage} 
             onOrderSuccess={() => {
               clearCart(); 
             }}
@@ -177,14 +210,16 @@ export default function Home() {
         ) : currentPage === 'affiliate' ? (
           <AffiliatePage />
         ) : currentPage === 'shipping-delivery' ? (
-          <ShippingDeliveryPage setCurrentPage={setCurrentPage} />
+          <ShippingDeliveryPage setCurrentPage={handleNavigatePage} />
         ) : currentPage === 'returns-exchanges' ? (
-          <ReturnsExchangesPage setCurrentPage={setCurrentPage} />
+          <ReturnsExchangesPage setCurrentPage={handleNavigatePage} />
+        ) : currentPage === 'wishlist' ? (
+          <WishlistPage setCurrentPage={handleNavigatePage} onAddToCart={handleAddToCart} />
         ) : (
           <div className="dynamic-page-view px-6 py-20 text-center">
             <h1 className="text-3xl font-bold">{currentPage.toUpperCase()} COLLECTION</h1>
             <p className="mt-2 text-gray-600">Explore premium luxury items curated for {currentPage}.</p>
-            <button className="mt-6 rounded-full bg-black px-6 py-2.5 text-white" onClick={() => setCurrentPage('home')}>
+            <button className="mt-6 rounded-full bg-black px-6 py-2.5 text-white" onClick={() => handleNavigatePage('home')}>
               Back to Home
             </button>
           </div>
@@ -197,7 +232,7 @@ export default function Home() {
         cartItems={cartItems}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={handleNavigatePage}
       />
 
       <AuthModal 
@@ -210,7 +245,7 @@ export default function Home() {
       {!showSplash && <WhatsAppButton />}
 
       {/* Footer */}
-      <Footer setCurrentPage={setCurrentPage} />
+      <Footer setCurrentPage={handleNavigatePage} />
     </div>
   );
 }

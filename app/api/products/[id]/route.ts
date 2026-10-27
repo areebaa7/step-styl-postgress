@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { ensureProductsSeeded, serializeProduct } from '@/lib/products';
+import { ensureProductsSeeded, serializeProduct, resolveCollectionId } from '@/lib/products';
 import { AUTH_COOKIE_NAME, verifyAuthToken } from '@/lib/auth';
 import { parseProductPayload } from '@/lib/productValidation';
 
@@ -82,7 +82,9 @@ export async function PUT(
     const product = await prisma.product.update({
       where: { slug },
       data: {
-        category: data.category ?? undefined, title: data.title ?? undefined,
+        category: data.category ?? undefined,
+        gender: data.gender ?? undefined,
+        title: data.title ?? undefined,
         description: data.description ?? undefined,
         shortDescription: data.shortDescription ?? undefined,
         price: data.price ?? undefined,
@@ -97,7 +99,7 @@ export async function PUT(
         specifications: toJsonInput(data.specifications),
         features: toJsonInput(data.features),
         variants: toJsonInput(data.variants),
-        collectionId: data.collectionId === undefined ? undefined : data.collectionId,
+        collectionId: data.collectionId !== undefined ? await resolveCollectionId(data.collectionId) : undefined,
       },
       include: { collection: true },
     });

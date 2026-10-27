@@ -31,10 +31,15 @@ const toObject = (value: unknown): Record<string, unknown> => {
     try {
       const parsed = JSON.parse(value);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return parsed;
+        return parsed as Record<string, unknown>;
       }
     } catch {
-      return {};
+      const obj: Record<string, unknown> = {};
+      value.split('\n').forEach((line) => {
+        const [k, ...v] = line.split(':');
+        if (k && v.length) obj[k.trim()] = v.join(':').trim();
+      });
+      return obj;
     }
   }
 
@@ -77,7 +82,9 @@ export function parseProductPayload(
 
   // Robustly handle gender parsing without overwriting with hardcoded defaults
   if (body.gender !== undefined && body.gender !== null) {
-    const cleanGender = String(body.gender).trim().toLowerCase();
+    let cleanGender = String(body.gender).trim().toLowerCase();
+    if (cleanGender === 'female') cleanGender = 'women';
+    if (cleanGender === 'male') cleanGender = 'men';
     if (['men', 'women', 'kids'].includes(cleanGender)) {
       data.gender = cleanGender;
     } else {
@@ -160,7 +167,19 @@ export function parseProductPayload(
     data.discount = 0;
   }
 
-  if (body.inStock !== undefined) {
+  if (body.stock_quantity !== undefined || body.stock !== undefined) {
+    const rawStock = body.stock_quantity !== undefined ? body.stock_quantity : body.stock;
+    const stockQty = Number(rawStock);
+    if (!Number.isInteger(stockQty) || stockQty < 0) {
+      return { data: {}, error: 'Stock quantity must be a non-negative integer.' };
+    }
+    data.stock_quantity = stockQty;
+    if (body.inStock === undefined) {
+      data.inStock = stockQty > 0;
+    } else {
+      data.inStock = Boolean(body.inStock) && stockQty > 0;
+    }
+  } else if (body.inStock !== undefined) {
     data.inStock = Boolean(body.inStock);
   }
 
@@ -240,6 +259,21 @@ export function parseProductPayload(
     }
 
     data.variants = variants;
+    if (data.stock_quantity === undefined && variants.length > 0) {
+      data.stock_quantity = variants.reduce((sum, v) => sum + v.stock, 0);
+      data.inStock = data.stock_quantity > 0;
+    }
+  }
+
+  if ((!data.variants || data.variants.length === 0) && data.stock_quantity !== undefined) {
+    data.variants = [
+      {
+        id: 'default',
+        color: (data.colors && data.colors[0]) || 'Default',
+        size: 'One size',
+        stock: data.stock_quantity,
+      },
+    ];
   }
 
   if (body.collectionId !== undefined) {

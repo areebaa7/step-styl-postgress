@@ -7,7 +7,7 @@ import ProductDetail from './ProductDetail';
 import { fetchProducts } from './utils/shopApi';
 import './ShopPage.css';
 
-export default function MenShopPage({ onAddToCart }) {
+export default function MenShopPage({ onAddToCart, setCurrentPage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSubcategory, setActiveSubcategory] = useState('all');
@@ -32,7 +32,11 @@ export default function MenShopPage({ onAddToCart }) {
   // Strict isolation for Men products only on frontend as a backup safeguard
   const strictMenProducts = products.filter(item => {
     const g = (item.gender || '').toLowerCase().trim();
-    return g === 'men' || g === 'male';
+    const colName = (item.collection?.name || '').toLowerCase().trim();
+    const colGender = (item.collection?.targetGender || '').toLowerCase().trim();
+    if (g === 'men' || g === 'male') return true;
+    if (colGender === 'men' || colName.includes('men')) return true;
+    return false;
   });
 
   // Flexible subcategory filtering handling singular/plural mismatches (e.g. 'sneaker' vs 'sneakers')
@@ -40,8 +44,10 @@ export default function MenShopPage({ onAddToCart }) {
     ? strictMenProducts
     : strictMenProducts.filter(item => {
         const itemCategory = (item.category || '').toLowerCase().trim();
+        const itemCol = (item.collection?.name || item.collection?.slug || '').toLowerCase().trim();
+        const itemTitle = (item.title || item.name || '').toLowerCase().trim();
         const targetSub = activeSubcategory.toLowerCase().trim();
-        return itemCategory === targetSub || itemCategory.startsWith(targetSub);
+        return itemCategory.includes(targetSub) || itemCol.includes(targetSub) || itemTitle.includes(targetSub);
       });
 
   const itemsPerPage = 6;
@@ -69,6 +75,7 @@ export default function MenShopPage({ onAddToCart }) {
         product={selectedProduct} 
         onBack={() => setSelectedProduct(null)} 
         onAddToCart={onAddToCart}
+        setCurrentPage={setCurrentPage}
       />
     );
   }

@@ -102,7 +102,10 @@ export default function ReelsSection() {
         </p>
       </div>
 
-      <div className="mx-auto flex max-w-[1600px] snap-x snap-mandatory gap-4 overflow-x-auto px-[12vw] pb-7 sm:gap-5 sm:px-10 lg:gap-6 lg:px-20 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div 
+        className="mx-auto flex max-w-[1600px] snap-x snap-mandatory gap-4 overflow-x-auto px-[10vw] pb-7 sm:gap-5 sm:px-10 lg:gap-6 lg:px-20 scroll-smooth touch-pan-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
+      >
         {reels.map((reel) => <ReelCard key={reel.id} reel={reel} />)}
       </div>
       <p className="mt-1 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-purple-400 sm:hidden">Swipe to watch more</p>

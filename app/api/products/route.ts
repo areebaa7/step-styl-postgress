@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { ensureProductsSeeded, serializeProduct } from '@/lib/products';
+import { ensureProductsSeeded, serializeProduct, resolveCollectionId } from '@/lib/products';
 import { sendMarketingEmails, buildPromoEmail } from '@/lib/email';
 import { AUTH_COOKIE_NAME, verifyAuthToken } from '@/lib/auth';
 import { parseProductPayload } from '@/lib/productValidation';
@@ -49,20 +49,52 @@ export async function GET(request: NextRequest) {
     const gender = searchParams.get('gender');
 
     const where: any = {};
+    const andConditions: any[] = [];
     
     if (gender && gender !== 'ALL') {
-      where.gender = { equals: gender.toLowerCase().trim(), mode: 'insensitive' };
+      const cleanGender = gender.toLowerCase().trim();
+      const targetGenderEnum = cleanGender === 'women' ? 'WOMEN' : cleanGender === 'kids' ? 'KIDS' : 'MEN';
+
+      const genderOr: any[] = [
+        { gender: { equals: cleanGender, mode: 'insensitive' } },
+        { collection: { targetGender: targetGenderEnum } },
+        { collection: { slug: { contains: cleanGender, mode: 'insensitive' } } },
+        { collection: { name: { contains: cleanGender, mode: 'insensitive' } } },
+      ];
+
+      if (cleanGender === 'women') {
+        genderOr.push({ category: { equals: 'bridal', mode: 'insensitive' } });
+      } else if (cleanGender === 'kids') {
+        genderOr.push({ category: { equals: 'kids', mode: 'insensitive' } });
+      }
+
+      andConditions.push({ OR: genderOr });
     }
     
     if (category && category !== 'ALL') {
-      where.category = { equals: category.toLowerCase().trim(), mode: 'insensitive' };
+      andConditions.push({ category: { equals: category.toLowerCase().trim(), mode: 'insensitive' } });
     }
     
-    if (collectionSlug) {
-      where.collection = { slug: { equals: collectionSlug, mode: 'insensitive' } };
+    if (collectionSlug && collectionSlug !== 'ALL') {
+      const cleanCol = collectionSlug.toLowerCase().trim();
+      andConditions.push({
+        collection: {
+          OR: [
+            { slug: { equals: cleanCol, mode: 'insensitive' } },
+            { name: { equals: cleanCol, mode: 'insensitive' } },
+            { slug: { contains: cleanCol, mode: 'insensitive' } },
+          ],
+        },
+      });
     }
-    if (collectionId) {
-      where.collectionId = collectionId;
+    if (collectionId && collectionId !== 'ALL' && collectionId !== 'NONE') {
+      andConditions.push({ collectionId: collectionId.trim() });
+    } else if (collectionId === 'NONE') {
+      andConditions.push({ collectionId: null });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
     
     if (inStock === 'true') {
@@ -134,12 +166,19 @@ export async function GET(request: NextRequest) {
       if (maxPrice) where.price.lte = parseFloat(maxPrice);
     }
 
-    if (search) {
+    if (search && search.trim()) {
+      const cleanSearch = search.trim();
+      const searchConditions = [
+        { title: { contains: cleanSearch, mode: 'insensitive' } },
+        { description: { contains: cleanSearch, mode: 'insensitive' } },
+        { shortDescription: { contains: cleanSearch, mode: 'insensitive' } },
+        { category: { contains: cleanSearch, mode: 'insensitive' } },
+        { collection: { name: { contains: cleanSearch, mode: 'insensitive' } } },
+        { collection: { slug: { contains: cleanSearch, mode: 'insensitive' } } },
+      ];
       where.OR = [
         ...(where.OR || []),
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { shortDescription: { contains: search, mode: 'insensitive' } },
+        ...searchConditions,
       ];
     }
 
@@ -246,7 +285,7 @@ export async function POST(request: NextRequest) {
         specifications: toJsonInput(data.specifications ?? {}),
         features: toJsonInput(data.features ?? []),
         variants: toJsonInput(data.variants ?? []),
-        collectionId: data.collectionId ?? null,
+        collectionId: await resolveCollectionId(data.collectionId),
       },
       include: { collection: true },
     });

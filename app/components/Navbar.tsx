@@ -11,7 +11,8 @@ import { useSaleStatus } from "../hooks/useSaleStatus";
 import { useCart } from "@/app/context/CartContext";
 import { useWishlist } from "@/app/context/WishlistContext";
 import type { CollectionDTO } from "@/types/product";
-import { User, Heart, ShoppingBag, Sparkles } from "lucide-react";
+import { User, Heart, ShoppingBag, Sparkles, Search } from "lucide-react";
+import LiveSearchBar from "./LiveSearchBar";
 import { notifyAuthState } from "@/lib/authState.client";
 
 const NAV_LINKS = [
@@ -76,6 +77,7 @@ export default function Navbar() {
   const [accountModalMode, setAccountModalMode] = useState<AuthMode>('register');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
   const { totalCount: cartCount, isCartOpen, setIsCartOpen } = useCart();
@@ -342,6 +344,16 @@ export default function Navbar() {
                 )}
               </div>
 
+              {/* Live Global Search Button */}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2.5 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors relative"
+                aria-label="Search"
+                title="Search Products"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
               {/* Wishlist */}
               <Link
                 href="/wishlist"
@@ -421,6 +433,9 @@ export default function Navbar() {
 
       {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Live Global Search Modal */}
+      <LiveSearchBar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

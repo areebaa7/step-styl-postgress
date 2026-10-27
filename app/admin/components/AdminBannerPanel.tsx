@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Edit2, Check, MoveUp, MoveDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, MoveUp, MoveDown, Info } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { AdminEmptyState, AdminErrorState, AdminLoadingState } from './AdminAsyncState';
 
@@ -198,18 +198,44 @@ export default function AdminBannerPanel() {
                 </div>
               </div>
 
+              {/* Banner Size Recommendation Helper Notice */}
+              <div className="rounded-xl border border-purple-200 bg-purple-50/70 p-4 text-xs text-purple-950 shadow-sm">
+                <div className="flex items-center gap-2 font-bold text-sm text-purple-900 mb-2">
+                  <Info className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                  <span>Recommended Storefront Media Dimensions &amp; Aspect Ratios</span>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-purple-800 leading-relaxed">
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100">
+                    <span className="font-bold text-purple-900 block mb-0.5">🖥️ Desktop Hero (12:5)</span>
+                    <span><strong>1920 &times; 600px</strong> (or 1920 &times; 800px). Edge-to-edge desktop presentation.</span>
+                  </div>
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100">
+                    <span className="font-bold text-purple-900 block mb-0.5">📱 Mobile Hero (4:5)</span>
+                    <span><strong>800 &times; 1000px</strong>. Perfect for portrait mobile phone screens.</span>
+                  </div>
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100">
+                    <span className="font-bold text-purple-900 block mb-0.5">🏷️ Category Banners</span>
+                    <span><strong>1200 &times; 500px</strong>. Crisp collection headers for Men, Women, Kids.</span>
+                  </div>
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-purple-100">
+                    <span className="font-bold text-purple-900 block mb-0.5">🎬 Reels / Stories (9:16)</span>
+                    <span><strong>1080 &times; 1920px</strong>. Full-height vertical video and poster thumbs.</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FileUpload
-                  label="Image 1"
+                  label="Image 1 (Recommended Desktop: 1920x600px)"
                   accept="image"
-                  placeholder="Upload the first banner image option. Any dimensions are allowed."
+                  placeholder="Upload first banner image. Recommended: 1920x600px for desktop (12:5 ratio)."
                   value={currentBanner.desktopImageUrl || ''}
                   onChange={(url) => setCurrentBanner({ ...currentBanner, desktopImageUrl: url })}
                 />
                 <FileUpload
-                  label="Image 2"
+                  label="Image 2 (Recommended Mobile: 800x1000px)"
                   accept="image"
-                  placeholder="Upload the second banner image option. Any dimensions are allowed."
+                  placeholder="Upload second banner image. Recommended: 800x1000px for mobile (4:5 ratio)."
                   value={currentBanner.mobileImageUrl || ''}
                   onChange={(url) => setCurrentBanner({ ...currentBanner, mobileImageUrl: url })}
                 />

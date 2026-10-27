@@ -7,7 +7,7 @@ import ProductDetail from './ProductDetail';
 import { fetchProducts } from './utils/shopApi';
 import './ShopPage.css';
 
-export default function WomenShopPage({ onAddToCart }) {
+export default function WomenShopPage({ onAddToCart, setCurrentPage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSubcategory, setActiveSubcategory] = useState('all');
@@ -32,10 +32,16 @@ export default function WomenShopPage({ onAddToCart }) {
   // Robust gender isolation: matches women, female, or items where gender is unassigned/loose
   const strictWomenProducts = products.filter(item => {
     const g = (item.gender || '').toLowerCase().trim();
+    const colName = (item.collection?.name || '').toLowerCase().trim();
+    const colGender = (item.collection?.targetGender || '').toLowerCase().trim();
     const title = (item.title || '').toLowerCase();
     const category = (item.category || '').toLowerCase();
     
-    return g === 'women' || g === 'female' || g === 'unisex' || (!g.includes('men') && !g.includes('kids') && (category.includes('women') || title.includes('women') || g === ''));
+    if (g === 'women' || g === 'female') return true;
+    if (colGender === 'women' || colName.includes('women')) return true;
+    if (category === 'bridal') return true;
+
+    return g === 'unisex' || (!g.includes('men') && !g.includes('kids') && (category.includes('women') || title.includes('women') || g === ''));
   });
 
   // Bulletproof subcategory matching that handles casual, bridal, and formal keywords
@@ -44,10 +50,11 @@ export default function WomenShopPage({ onAddToCart }) {
     : strictWomenProducts.filter(item => {
         const itemCat = (item.category || '').toLowerCase().trim();
         const itemSub = (item.subcategory || '').toLowerCase().trim();
-        const itemTitle = (item.title || '').toLowerCase().trim();
+        const itemTitle = (item.title || item.name || '').toLowerCase().trim();
+        const itemCol = (item.collection?.name || item.collection?.slug || '').toLowerCase().trim();
         const targetSub = activeSubcategory.toLowerCase().trim();
         
-        return itemCat.includes(targetSub) || itemSub.includes(targetSub) || itemTitle.includes(targetSub);
+        return itemCat.includes(targetSub) || itemSub.includes(targetSub) || itemTitle.includes(targetSub) || itemCol.includes(targetSub);
       });
 
   const itemsPerPage = 8;
@@ -75,6 +82,7 @@ export default function WomenShopPage({ onAddToCart }) {
         product={selectedProduct} 
         onBack={() => setSelectedProduct(null)} 
         onAddToCart={onAddToCart}
+        setCurrentPage={setCurrentPage}
       />
     );
   }

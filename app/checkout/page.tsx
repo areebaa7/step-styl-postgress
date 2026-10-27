@@ -730,9 +730,19 @@ function CheckoutContent() {
           <div className="pt-6">
             <button
               type="submit" disabled={isSubmitting}
-              className="w-full bg-[#E91E63] text-white py-5 rounded-lg text-sm font-semibold  tracking-wide shadow-xl shadow-pink-100 hover:bg-[#D81B60] hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50"
+              className="w-full bg-[#E91E63] text-white py-5 rounded-lg text-sm font-semibold tracking-wide shadow-xl shadow-pink-100 hover:bg-[#D81B60] hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isSubmitting ? 'Processing...' : 'Complete order'}
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                'Complete order'
+              )}
             </button>
             {statusMessage && <p className="text-xs text-red-500 font-bold text-center mt-4">{statusMessage}</p>}
           </div>
@@ -892,3 +902,4 @@ function CheckoutContent() {
     </div>
   );
 }
+
