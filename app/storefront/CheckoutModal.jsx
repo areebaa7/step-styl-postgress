@@ -69,6 +69,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderSucce
       }
 
       setSuccessOrder(data.order || { id: 'SUCCESS' });
+      const modalBox = document.querySelector('.checkout-modal-content');
+      if (modalBox) modalBox.scrollTo({ top: 0, behavior: 'smooth' });
       if (onOrderSuccess) onOrderSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');

@@ -15,6 +15,10 @@ function OrderConfirmation() {
   const displayOrderId = orderId ? orderId.slice(-8).toUpperCase() : '';
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
     if (!orderId || !claim) return;
     const trackPurchase = async () => {
       try {

@@ -605,11 +605,11 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-full box-border pt-4">
               <button
                 onClick={handleAddToCart}
                 disabled={!product.inStock || isAdminUser || isCheckingUser || isAddingToCart}
-                className={`w-full py-4 sm:py-5 border-2 font-semibold  tracking-wide sm:tracking-wide text-xs transition-all duration-500 active:scale-[0.98] ${
+                className={`flex-1 w-full min-w-0 py-3.5 sm:py-4 px-3 sm:px-4 rounded-md border-2 font-semibold tracking-wide text-xs sm:text-sm transition-all duration-300 active:scale-[0.98] ${
                   !canAddToCart
                     ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                     : isAddingToCart
@@ -624,8 +624,8 @@ export default function ProductDetailPage() {
                   : isAddingToCart 
                   ? (
                       <span className="flex items-center justify-center gap-2">
-                        <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                        Added to Bag
+                        <svg className="w-4 h-4 animate-bounce shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        <span className="truncate">Added to Bag</span>
                       </span>
                     )
                   : 'Add to Cart'}
@@ -633,7 +633,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleBuyNow}
                 disabled={!product.inStock || isAdminUser || isCheckingUser}
-                className={`w-full py-4 sm:py-5 font-semibold  tracking-wide sm:tracking-wide text-xs transition-all duration-500 shadow-xl active:scale-[0.98] ${
+                className={`flex-1 w-full min-w-0 py-3.5 sm:py-4 px-3 sm:px-4 rounded-md font-semibold tracking-wide text-xs sm:text-sm transition-all duration-300 shadow-xl active:scale-[0.98] ${
                   !canAddToCart
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                     : 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-200'

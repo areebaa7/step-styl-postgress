@@ -8,10 +8,8 @@ import {
   Truck, ShieldCheck, RefreshCw, X, Ruler, Percent, CheckCircle2, Zap, Heart 
 } from 'lucide-react';
 import { useWishlist } from '@/app/context/WishlistContext';
-import './ProductDetail.css';
 
 export default function ProductDetail({ product, onBack, onAddToCart, setCurrentPage }) {
-  // Automatically scroll to the top of the product card view when opened
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, []);
@@ -29,10 +27,8 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const isWishlisted = isInWishlist(product.id);
 
-  // Fly-to-cart animation state
   const [flyingImage, setFlyingImage] = useState(null);
 
-  // Dynamic color variant resolution with graceful fallback
   const currentColor = product.colors && product.colors[selectedColorIndex];
   const matchedVariant = useMemo(() => {
     if (!currentColor) return null;
@@ -44,10 +40,8 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
     }) || null;
   }, [product.variants, product.colorVariants, currentColor]);
 
-  // Full product gallery with all images uploaded from admin panel
   const images = useMemo(() => {
     const list = [];
-    // Prioritize variant image if matching current color
     if (matchedVariant?.imageUrl) list.push(matchedVariant.imageUrl);
     if (Array.isArray(matchedVariant?.images)) {
       matchedVariant.images.forEach((img) => {
@@ -78,7 +72,6 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
 
   const activeDescription = matchedVariant?.description || product.description || 'Crafted with precision for style and day-long wearability.';
 
-  // Comprehensive parsing of specifications from Admin Panel (Task 1.4)
   const productSpecs = useMemo(() => {
     const raw = product.specifications || product.details || {};
     let obj = {};
@@ -123,23 +116,11 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
       }
     }
 
-    return {
-      embellishment,
-      heelType,
-      heelHeight,
-      liningMaterial,
-      shoeSole,
-      upperMaterial,
-      extraSpecs
-    };
+    return { embellishment, heelType, heelHeight, liningMaterial, shoeSole, upperMaterial, extraSpecs };
   }, [product.specifications, product.details]);
 
   const availableSizes = ['36', '37', '39', '40', '41'];
-
-  // Calculate live stock for current selection
-  const chosenColor = (product.colors && product.colors.length > 0) 
-    ? (product.colors[selectedColorIndex] || '#000000') 
-    : null;
+  const chosenColor = (product.colors && product.colors.length > 0) ? (product.colors[selectedColorIndex] || '#000000') : null;
 
   const currentVariant = useMemo(() => {
     const variantList = product.variants || product.colorVariants || [];
@@ -160,7 +141,6 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
   }
   const isOutOfStock = product.inStock === false || currentStock <= 0;
 
-  // Dynamic image switching on color variant select
   const handleColorChange = (index) => {
     setSelectedColorIndex(index);
     const color = product.colors && product.colors[index];
@@ -197,50 +177,17 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
     setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = () => {
     if (!selectedSize) {
       setStockWarning('Please select a size before adding to cart.');
       setTimeout(() => setStockWarning(null), 3500);
       return;
     }
-
     if (isOutOfStock) {
       setStockWarning('This item or variant is currently out of stock.');
       setTimeout(() => setStockWarning(null), 3500);
       return;
     }
-
-    if (quantity > currentStock) {
-      setStockWarning(`Only ${currentStock} item(s) available in stock. Please adjust quantity.`);
-      setTimeout(() => setStockWarning(null), 3500);
-      return;
-    }
-
-    // Fly-to-cart animation trajectory
-    const imgElement = document.querySelector('.pdp-main-image') || document.querySelector('.pdp-main-image-wrapper img');
-    const cartIcon = document.getElementById('cart-icon');
-
-    if (imgElement && cartIcon) {
-      const imgRect = imgElement.getBoundingClientRect();
-      const cartRect = cartIcon.getBoundingClientRect();
-
-      if (imgRect.width > 0 && cartRect.width > 0) {
-        const startX = imgRect.left + imgRect.width / 2;
-        const startY = imgRect.top + imgRect.height / 2;
-        const endX = cartRect.left + cartRect.width / 2;
-        const endY = cartRect.top + cartRect.height / 2;
-
-        setFlyingImage({
-          id: Date.now(),
-          src: activeVariantImage || images[activeImageIndex],
-          x: startX,
-          y: startY,
-          targetX: endX - startX,
-          targetY: endY - startY,
-        });
-      }
-    }
-
     onAddToCart({
       ...product,
       title: product.title || product.name,
@@ -253,7 +200,6 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
       quantity,
       maxStock: currentStock,
     });
-
     setAddedNotification(true);
     setTimeout(() => setAddedNotification(false), 2500);
   };
@@ -261,21 +207,17 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
   const handleBuyNow = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (isSubmittingBuyNow) return;
-
     if (!selectedSize) {
-      setStockWarning('Please select a size before proceeding to checkout.');
+      setStockWarning('Please select a size before proceeding.');
       setTimeout(() => setStockWarning(null), 3500);
       return;
     }
-
     if (isOutOfStock) {
-      setStockWarning('This item or variant is currently out of stock.');
+      setStockWarning('This item is currently out of stock.');
       setTimeout(() => setStockWarning(null), 3500);
       return;
     }
-
     setIsSubmittingBuyNow(true);
-
     onAddToCart({
       ...product,
       title: product.title || product.name,
@@ -288,7 +230,6 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
       quantity,
       maxStock: currentStock,
     });
-
     if (typeof setCurrentPage === 'function') {
       setCurrentPage('checkout');
     } else {
@@ -298,24 +239,24 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
 
   return (
     <motion.div 
-      className="pdp-container"
+      className="pdp-container w-full max-w-full box-border overflow-x-hidden px-3 sm:px-6 py-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
     >
-      <button className="pdp-back-btn" onClick={onBack}>
+      <button className="pdp-back-btn text-sm font-semibold text-gray-700 mb-4 flex items-center gap-1" onClick={onBack}>
         &larr; Back to Catalog
       </button>
 
-      <div className="pdp-grid-layout">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-start w-full max-w-full box-border">
         
         {/* Left Column: Gallery */}
-        <div className="pdp-gallery-section">
-          <div className="pdp-main-image-wrapper">
+        <div className="flex flex-col gap-4 w-full max-w-full box-border min-w-0">
+          <div className="relative w-full h-[300px] sm:h-[420px] bg-[#F9F8F6] rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center box-border">
             {images.length > 1 && (
-              <button className="gallery-arrow left" onClick={handlePrevImage} aria-label="Previous Image">
-                <ChevronLeft size={20} />
+              <button className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 border border-gray-200 rounded-full w-9 h-9 flex items-center justify-center z-10 shadow cursor-pointer" onClick={handlePrevImage}>
+                <ChevronLeft size={18} />
               </button>
             )}
 
@@ -323,38 +264,38 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
               key={activeVariantImage || images[activeImageIndex]}
               src={activeVariantImage || images[activeImageIndex]} 
               alt={product.title}
-              className="pdp-main-image"
+              className="w-full h-full object-contain p-3 box-border"
               initial={{ opacity: 0.7 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
             />
 
             {images.length > 1 && (
-              <button className="gallery-arrow right" onClick={handleNextImage} aria-label="Next Image">
-                <ChevronRight size={20} />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 border border-gray-200 rounded-full w-9 h-9 flex items-center justify-center z-10 shadow cursor-pointer" onClick={handleNextImage}>
+                <ChevronRight size={18} />
               </button>
             )}
           </div>
 
-          <div className="pdp-thumbnails-row">
+          <div className="flex gap-3 overflow-x-auto pb-2 w-full max-w-full">
             {images.map((imgUrl, idx) => (
               <div 
                 key={idx} 
-                className={`pdp-thumb-box ${activeImageIndex === idx && !activeVariantImage ? 'active-thumb' : ''}`}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 cursor-pointer flex-shrink-0 bg-[#F9F8F6] flex items-center justify-center ${activeImageIndex === idx && !activeVariantImage ? 'border-gray-900' : 'border-gray-200'}`}
                 onClick={() => { setActiveVariantImage(null); setActiveImageIndex(idx); }}
               >
-                <img src={imgUrl} alt={`Thumb ${idx}`} />
+                <img src={imgUrl} alt={`Thumb ${idx}`} className="w-full h-full object-contain p-1" />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right Column: Info, Variants, Purchase CTAs above-the-fold */}
-        <div className="pdp-info-section">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className="pdp-category-tag">{product.category || 'Luxury Footwear'}</span>
-              <h1 className="pdp-product-title">{product.title || product.name}</h1>
+        {/* Right Column: Info & Actions */}
+        <div className="flex flex-col w-full max-w-full box-border min-w-0">
+          <div className="flex items-start justify-between gap-3 w-full">
+            <div className="min-w-0 flex-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#9b4de0] block mb-1">{product.category || 'Luxury Footwear'}</span>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif text-gray-900 font-medium break-words leading-snug m-0">{product.title || product.name}</h1>
             </div>
             <button
               type="button"
@@ -367,75 +308,68 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
                     slug: product.slug,
                     title: product.title || product.name,
                     price: typeof product.price === 'number' ? product.price : Number(String(product.price).replace(/[^0-9.]/g, '')),
-                    salePrice: product.salePrice ? Number(String(product.salePrice).replace(/[^0-9.]/g, '')) : undefined,
                     image: activeVariantImage || images[activeImageIndex],
                   });
                 }
               }}
-              className="p-3 bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex-shrink-0"
-              title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-              aria-label="Wishlist"
+              className="p-2.5 bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex-shrink-0"
             >
-              <Heart
-                size={22}
-                className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-500 transition-colors"}
-              />
+              <Heart size={20} className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"} />
             </button>
           </div>
 
           {/* Pricing Box */}
-          <div className="pdp-pricing-box">
-            <span className="pdp-sale-price">{product.formattedPrice || product.price}</span>
+          <div className="flex flex-wrap items-center gap-3 my-4">
+            <span className="text-xl font-bold text-gray-900">{product.formattedPrice || product.price}</span>
             {product.formattedOriginalPrice && (
-              <span className="pdp-original-price">{product.formattedOriginalPrice}</span>
+              <span className="text-sm text-gray-400 line-through">{product.formattedOriginalPrice}</span>
             )}
-            <span className="pdp-discount-badge">{product.discount || '15% OFF'}</span>
+            <span className="bg-purple-100 text-[#9b4de0] text-xs font-bold px-2 py-0.5 rounded">{product.discount || '15% OFF'}</span>
           </div>
 
-          {/* Real-time Stock Status */}
-          <div className="flex items-center gap-2 my-2">
+          {/* Stock status */}
+          <div className="flex items-center gap-2 mb-4">
             <span className={`w-2.5 h-2.5 rounded-full inline-block ${isOutOfStock ? 'bg-red-500' : 'bg-emerald-500'}`} />
-            <span className={`text-xs font-bold tracking-wide uppercase ${isOutOfStock ? 'text-red-600' : 'text-emerald-700'}`}>
-              {isOutOfStock ? 'Sold Out' : currentStock <= 5 ? `Low Stock (Only ${currentStock} left)` : 'In Stock & Ready to Ship'}
+            <span className={`text-xs font-bold uppercase tracking-wider ${isOutOfStock ? 'text-red-600' : 'text-emerald-700'}`}>
+              {isOutOfStock ? 'Sold Out' : currentStock <= 5 ? `Low Stock (${currentStock} left)` : 'In Stock & Ready'}
             </span>
           </div>
 
-          {/* Color Option Swatches */}
-          <div className="pdp-option-group">
-            <div className="flex justify-between items-center mb-1">
-              <label className="pdp-option-label" style={{ marginBottom: 0 }}>Color Option</label>
-              <span className="text-xs font-semibold text-purple-700">{currentColor || 'Selected'}</span>
+          {/* Colors */}
+          <div className="mb-4 w-full max-w-full">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-semibold text-gray-800 uppercase tracking-wide">Color Option</label>
+              <span className="text-xs font-medium text-purple-700">{currentColor || 'Standard'}</span>
             </div>
-            <div className="pdp-color-swatches">
+            <div className="flex flex-wrap gap-2.5">
               {product.colors && product.colors.length > 0 ? (
                 product.colors.map((hex, idx) => (
                   <div 
                     key={idx}
-                    className={`pdp-color-dot ${selectedColorIndex === idx ? 'selected-color' : ''}`}
+                    className={`w-7 h-7 rounded-full border-2 cursor-pointer transition-transform ${selectedColorIndex === idx ? 'scale-110 border-gray-900 shadow-sm' : 'border-gray-300'}`}
                     style={{ backgroundColor: hex }}
                     onClick={() => handleColorChange(idx)}
-                    title={`Select color ${hex}`}
                   />
                 ))
               ) : (
-                <div className="pdp-color-dot selected-color" style={{ backgroundColor: '#1F2937' }} />
+                <div className="w-7 h-7 rounded-full border-2 border-gray-900 bg-gray-900" />
               )}
             </div>
           </div>
 
-          {/* Size Selection */}
-          <div className="pdp-option-group">
-            <div className="pdp-size-header">
-              <label className="pdp-option-label">Select Size (EU):</label>
-              <button className="pdp-size-chart-link" onClick={() => setShowSizeChart(true)}>
-                <Ruler size={14} /> Size Chart
+          {/* Sizes */}
+          <div className="mb-4 w-full max-w-full">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-semibold text-gray-800 uppercase tracking-wide">Select Size (EU):</label>
+              <button className="text-xs text-[#9b4de0] font-semibold underline bg-transparent border-none cursor-pointer flex items-center gap-1" onClick={() => setShowSizeChart(true)}>
+                <Ruler size={13} /> Size Chart
               </button>
             </div>
-            <div className="pdp-sizes-row">
+            <div className="flex flex-wrap gap-2">
               {availableSizes.map((size) => (
                 <button
                   key={size}
-                  className={`pdp-size-btn ${selectedSize === size ? 'active-size' : ''}`}
+                  className={`min-w-[42px] h-[38px] px-3 border rounded font-semibold text-xs transition-colors cursor-pointer ${selectedSize === size ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-800 border-gray-300 hover:border-gray-900'}`}
                   onClick={() => setSelectedSize(size)}
                 >
                   {size}
@@ -445,108 +379,98 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
           </div>
 
           {/* Quantity */}
-          <div className="pdp-option-group">
-            <label className="pdp-option-label">Quantity:</label>
-            <div className="pdp-quantity-wrapper">
-              <button className="qty-btn" onClick={() => setQuantity(prev => Math.max(1, prev - 1))} aria-label="Decrease Quantity">
-                <Minus size={16} />
+          <div className="mb-5 w-full max-w-full">
+            <label className="text-xs font-semibold text-gray-800 uppercase tracking-wide block mb-2">Quantity:</label>
+            <div className="inline-flex items-center border border-gray-300 rounded overflow-hidden">
+              <button className="w-9 h-9 bg-gray-50 flex items-center justify-center border-none cursor-pointer text-gray-800 hover:bg-gray-200" onClick={() => setQuantity(prev => Math.max(1, prev - 1))}>
+                <Minus size={14} />
               </button>
-              <span className="qty-value">{quantity}</span>
-              <button className="qty-btn" onClick={() => setQuantity(prev => Math.min(currentStock, prev + 1))} aria-label="Increase Quantity">
-                <Plus size={16} />
+              <span className="w-10 text-center font-semibold text-sm text-gray-900">{quantity}</span>
+              <button className="w-9 h-9 bg-gray-50 flex items-center justify-center border-none cursor-pointer text-gray-800 hover:bg-gray-200" onClick={() => setQuantity(prev => Math.min(currentStock, prev + 1))}>
+                <Plus size={14} />
               </button>
             </div>
           </div>
 
-          {/* Inline Stock & Validation Warning */}
           {stockWarning && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-3 my-2 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg text-center"
-            >
+            <div className="p-2.5 mb-3 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded text-center w-full box-border">
               {stockWarning}
-            </motion.div>
+            </div>
           )}
 
-          {/* Key Action Buttons: Add to Cart and Buy Now */}
-          <div className="space-y-3 mt-4">
+          {/* Action Buttons: Add to Cart & Buy Now (Strictly Constrained to Prevent Leaking) */}
+          <div className="flex flex-col sm:flex-row gap-2.5 w-full max-w-full box-border my-2">
             <button 
-              className="pdp-add-to-cart-btn" 
+              className="flex-1 w-full max-w-full min-w-0 box-border bg-gray-900 hover:bg-[#9b4de0] text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm" 
               onClick={handleAddToCart}
               disabled={isOutOfStock}
-              style={{ marginTop: 0 }}
             >
-              <ShoppingBag size={18} /> {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
+              <ShoppingBag size={16} className="shrink-0" />
+              <span className="truncate">{isOutOfStock ? 'Sold Out' : 'Add to Cart'}</span>
             </button>
 
             <button
               type="button"
-              className="pdp-buy-now-btn"
+              className="flex-1 w-full max-w-full min-w-0 box-border bg-[#9b4de0] hover:bg-[#8537c9] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer text-sm shadow-md"
               onClick={handleBuyNow}
               disabled={isOutOfStock || isSubmittingBuyNow}
             >
-              <Zap size={18} /> {isSubmittingBuyNow ? 'Proceeding to Checkout...' : 'Buy Now'}
+              <Zap size={16} className="shrink-0" />
+              <span className="truncate">{isSubmittingBuyNow ? 'Processing...' : 'Buy Now'}</span>
             </button>
           </div>
 
           {addedNotification && (
-            <motion.p className="pdp-success-alert" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              ✓ Successfully added to cart!
-            </motion.p>
+            <p className="text-xs text-emerald-600 font-semibold text-center mt-2">✓ Successfully added to cart!</p>
           )}
 
-          {/* ========================================== */}
-          {/* HIGHLY VISIBLE ASSURANCES GRID             */}
-          {/* ========================================== */}
-          <div className="pdp-product-assurances-grid">
-            <div className="assurance-card">
-              <CheckCircle2 size={20} className="assurance-icon" />
+          {/* Assurances Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-5 p-3.5 bg-gradient-to-br from-purple-50/50 to-gray-50 border border-purple-100 rounded-lg w-full max-w-full box-border">
+            <div className="flex items-start gap-2.5 bg-white p-2.5 rounded border border-gray-200">
+              <CheckCircle2 size={18} className="text-[#9b4de0] shrink-0 mt-0.5" />
               <div>
-                <h5>Check Before You Pay</h5>
-                <p>Inspect your order before payment.</p>
+                <h5 className="text-xs font-bold text-gray-900 m-0 mb-0.5">Check Before You Pay</h5>
+                <p className="text-[11px] text-gray-600 m-0">Inspect your order before payment.</p>
               </div>
             </div>
 
-            <div className="assurance-card">
-              <RefreshCw size={20} className="assurance-icon" />
+            <div className="flex items-start gap-2.5 bg-white p-2.5 rounded border border-gray-200">
+              <RefreshCw size={18} className="text-[#9b4de0] shrink-0 mt-0.5" />
               <div>
-                <h5>7 Days Easy Return</h5>
-                <p>Easy return within 7 days.</p>
+                <h5 className="text-xs font-bold text-gray-900 m-0 mb-0.5">7 Days Easy Return</h5>
+                <p className="text-[11px] text-gray-600 m-0">Easy return within 7 days.</p>
               </div>
             </div>
 
-            <div className="assurance-card highlight-bank-card">
-              <Percent size={20} className="assurance-icon" />
+            <div className="flex items-start gap-2.5 bg-white p-2.5 rounded border border-purple-200">
+              <Percent size={18} className="text-[#9b4de0] shrink-0 mt-0.5" />
               <div>
-                <h5>5% OFF Bank Transfer</h5>
-                <p>Get extra discount on direct payment.</p>
+                <h5 className="text-xs font-bold text-gray-900 m-0 mb-0.5">5% OFF Bank Transfer</h5>
+                <p className="text-[11px] text-gray-600 m-0">Extra discount on direct payment.</p>
               </div>
             </div>
 
-            <div className="assurance-card">
-              <Truck size={20} className="assurance-icon" />
+            <div className="flex items-start gap-2.5 bg-white p-2.5 rounded border border-gray-200">
+              <Truck size={18} className="text-[#9b4de0] shrink-0 mt-0.5" />
               <div>
-                <h5>Nationwide Fast Delivery</h5>
-                <p>Fast delivery across Pakistan.</p>
+                <h5 className="text-xs font-bold text-gray-900 m-0 mb-0.5">Nationwide Fast Delivery</h5>
+                <p className="text-[11px] text-gray-600 m-0">Fast delivery across Pakistan.</p>
               </div>
             </div>
           </div>
 
-          {/* ========================================== */}
-          {/* FULL PRODUCT DESCRIPTION ACCORDION SECTION */}
-          {/* ========================================== */}
-          <div className="pdp-desc-accordion-container" style={{ marginTop: "1.5rem", marginBottom: "1rem" }}>
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+          {/* About This Product Accordion */}
+          <div className="mt-4 w-full max-w-full box-border">
+            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50/50 w-full box-border">
               <div className="flex justify-between items-center cursor-pointer" onClick={() => setIsDescExpanded(!isDescExpanded)}>
-                <h4 className="text-sm font-bold text-gray-900 tracking-wide uppercase m-0">About This Product</h4>
-                <button type="button" className="text-purple-700 p-1">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider m-0">About This Product</h4>
+                <button type="button" className="text-[#9b4de0] p-0 bg-transparent border-none cursor-pointer">
                   {isDescExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
               </div>
 
               {!isDescExpanded && (
-                <p className="pdp-short-desc text-xs text-gray-600 line-clamp-2 mt-2 mb-0">
+                <p className="text-xs text-gray-600 line-clamp-2 mt-2 mb-0 break-words leading-relaxed">
                   {activeDescription}
                 </p>
               )}
@@ -558,10 +482,10 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden w-full"
                   >
-                    <p className="pdp-short-desc text-xs text-gray-700 leading-relaxed mt-2 mb-0">
+                    <p className="text-xs text-gray-700 leading-relaxed mt-2 mb-0 break-words">
                       {activeDescription}
                     </p>
                   </motion.div>
@@ -570,32 +494,30 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
             </div>
           </div>
 
-          {/* ========================================== */}
-          {/* PRODUCT SPECIFICATIONS SECTION             */}
-          {/* ========================================== */}
-          <div className="pdp-accordion-wrapper">
-            <div className="accordion-item">
-              <button className="accordion-header" onClick={() => setProductDetailsOpen(!productDetailsOpen)}>
+          {/* Product Specifications Section */}
+          <div className="mt-3 w-full max-w-full box-border">
+            <div className="bg-[#F9F8F6] rounded-lg overflow-hidden w-full">
+              <button className="w-full bg-transparent border-none py-3 px-4 flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-wide cursor-pointer hover:bg-[#F3F2EE]" onClick={() => setProductDetailsOpen(!productDetailsOpen)}>
                 <span>Product Specifications</span>
-                {productDetailsOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                {productDetailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
               <AnimatePresence>
                 {productDetailsOpen && (
                   <motion.div 
-                    className="accordion-content"
+                    className="px-4 pb-3 text-xs text-gray-600 leading-relaxed w-full box-border"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    <ul className="details-list">
-                      <li>Embellishment: <strong>{productSpecs.embellishment}</strong></li>
-                      <li>Heel Type: <strong>{productSpecs.heelType}</strong></li>
-                      <li>Heel Height: <strong>{productSpecs.heelHeight}</strong></li>
-                      <li>Lining Material: <strong>{productSpecs.liningMaterial}</strong></li>
-                      <li>Shoe Sole: <strong>{productSpecs.shoeSole}</strong></li>
-                      <li>Upper Material: <strong>{productSpecs.upperMaterial}</strong></li>
+                    <ul className="list-none p-0 m-0 flex flex-col gap-1.5">
+                      <li className="break-words">Embellishment: <strong className="text-gray-900">{productSpecs.embellishment}</strong></li>
+                      <li className="break-words">Heel Type: <strong className="text-gray-900">{productSpecs.heelType}</strong></li>
+                      <li className="break-words">Heel Height: <strong className="text-gray-900">{productSpecs.heelHeight}</strong></li>
+                      <li className="break-words">Lining Material: <strong className="text-gray-900">{productSpecs.liningMaterial}</strong></li>
+                      <li className="break-words">Shoe Sole: <strong className="text-gray-900">{productSpecs.shoeSole}</strong></li>
+                      <li className="break-words">Upper Material: <strong className="text-gray-900">{productSpecs.upperMaterial}</strong></li>
                       {productSpecs.extraSpecs && productSpecs.extraSpecs.map((spec, idx) => (
-                        <li key={`extra-${idx}`}>{spec.label}: <strong>{spec.value}</strong></li>
+                        <li key={`extra-${idx}`} className="break-words">{spec.label}: <strong className="text-gray-900">{spec.value}</strong></li>
                       ))}
                     </ul>
                   </motion.div>
@@ -607,75 +529,41 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
         </div>
       </div>
 
-      {/* Mobile-Optimized Curved Fly-to-Cart Animation Overlay */}
-      <AnimatePresence>
-        {flyingImage && (
-          <motion.img
-            key={flyingImage.id}
-            src={flyingImage.src}
-            initial={{
-              position: 'fixed',
-              top: flyingImage.y - 35,
-              left: flyingImage.x - 35,
-              width: 70,
-              height: 70,
-              opacity: 1,
-              scale: 1,
-              zIndex: 99999,
-              pointerEvents: 'none',
-              borderRadius: '12px',
-            }}
-            animate={{
-              x: [0, flyingImage.targetX * 0.45, flyingImage.targetX],
-              y: [0, flyingImage.targetY * 0.25 - 80, flyingImage.targetY],
-              scale: [1, 0.7, 0.1],
-              opacity: [1, 0.95, 0.15],
-              rotate: [0, 10, 360],
-            }}
-            transition={{
-              duration: 1.0,
-              ease: [0.16, 1, 0.3, 1],
-              times: [0, 0.45, 1],
-            }}
-            onAnimationComplete={() => setFlyingImage(null)}
-            className="object-cover shadow-2xl border-2 border-purple-400 bg-white"
-          />
-        )}
-      </AnimatePresence>
-
       {/* Size Chart Modal */}
       <AnimatePresence>
         {showSizeChart && (
-          <div className="pdp-modal-overlay" onClick={() => setShowSizeChart(false)}>
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 box-border" onClick={() => setShowSizeChart(false)}>
             <motion.div 
-              className="pdp-modal-content"
+              className="bg-white p-5 sm:p-8 rounded-xl max-w-lg w-full relative shadow-2xl box-border"
               onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.95 }}
             >
-              <button className="pdp-modal-close" onClick={() => setShowSizeChart(false)}>
-                <X size={20} />
+              <button className="absolute top-4 right-4 bg-gray-100 border-none w-8 h-8 rounded-full flex items-center justify-center cursor-pointer text-gray-800" onClick={() => setShowSizeChart(false)}>
+                <X size={18} />
               </button>
-              <h2>Footwear Size Chart (EU)</h2>
-              <p>Find your perfect fit using standard European shoe measurements.</p>
-              <table className="size-chart-table">
-                <thead>
-                  <tr>
-                    <th>EU Size</th>
-                    <th>US Women</th>
-                    <th>US Men</th>
-                    <th>Foot Length (cm)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>36</td><td>5.5</td><td>4.5</td><td>22.5 cm</td></tr>
-                  <tr><td>37</td><td>6.5</td><td>5.5</td><td>23.2 cm</td></tr>
-                  <tr><td>39</td><td>8.0</td><td>7.0</td><td>24.5 cm</td></tr>
-                  <tr><td>40</td><td>8.5</td><td>7.5</td><td>25.1 cm</td></tr>
-                  <tr><td>41</td><td>9.5</td><td>8.5</td><td>25.8 cm</td></tr>
-                </tbody>
-              </table>
+              <h2 className="font-serif text-xl font-medium mb-1 text-gray-900">Footwear Size Chart (EU)</h2>
+              <p className="text-xs text-gray-500 mb-4">Find your perfect fit using standard European shoe measurements.</p>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border border-gray-200 p-2 text-center font-semibold">EU Size</th>
+                      <th className="border border-gray-200 p-2 text-center font-semibold">US Women</th>
+                      <th className="border border-gray-200 p-2 text-center font-semibold">US Men</th>
+                      <th className="border border-gray-200 p-2 text-center font-semibold">Length (cm)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td className="border border-gray-200 p-2 text-center">36</td><td className="border border-gray-200 p-2 text-center">5.5</td><td className="border border-gray-200 p-2 text-center">4.5</td><td className="border border-gray-200 p-2 text-center">22.5 cm</td></tr>
+                    <tr><td className="border border-gray-200 p-2 text-center">37</td><td className="border border-gray-200 p-2 text-center">6.5</td><td className="border border-gray-200 p-2 text-center">5.5</td><td className="border border-gray-200 p-2 text-center">23.2 cm</td></tr>
+                    <tr><td className="border border-gray-200 p-2 text-center">39</td><td className="border border-gray-200 p-2 text-center">8.0</td><td className="border border-gray-200 p-2 text-center">7.0</td><td className="border border-gray-200 p-2 text-center">24.5 cm</td></tr>
+                    <tr><td className="border border-gray-200 p-2 text-center">40</td><td className="border border-gray-200 p-2 text-center">8.5</td><td className="border border-gray-200 p-2 text-center">7.5</td><td className="border border-gray-200 p-2 text-center">25.1 cm</td></tr>
+                    <tr><td className="border border-gray-200 p-2 text-center">41</td><td className="border border-gray-200 p-2 text-center">9.5</td><td className="border border-gray-200 p-2 text-center">8.5</td><td className="border border-gray-200 p-2 text-center">25.8 cm</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </motion.div>
           </div>
         )}

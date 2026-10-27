@@ -308,23 +308,42 @@
   color: #1F2937;
 }
 
-/* Add to Cart CTA */
-.pdp-add-to-cart-btn {
+/* Add to Cart & Buy Now CTA Wrapper */
+.pdp-actions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .pdp-actions-wrapper {
+    flex-direction: row;
+  }
+}
+
+.pdp-add-to-cart-btn {
+  flex: 1 1 0%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background-color: #1F2937;
   color: #FFFFFF;
   border: none;
-  padding: 16px;
-  font-size: 1rem;
+  padding: 14px 16px;
+  font-size: 0.95rem;
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
   transition: background-color 0.2s ease, transform 0.2s ease;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .pdp-add-to-cart-btn:hover {
@@ -333,19 +352,23 @@
 }
 
 .pdp-buy-now-btn {
+  flex: 1 1 0%;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background-color: #9b4de0;
   color: #FFFFFF;
   border: none;
-  padding: 16px;
-  font-size: 1rem;
+  padding: 14px 16px;
+  font-size: 0.95rem;
   font-weight: 700;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
   box-shadow: 0 4px 14px rgba(155, 77, 224, 0.35);
   transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -692,5 +715,15 @@
   
   .pdp-main-image-wrapper {
     height: 320px;
+  }
+
+  .pdp-actions-wrapper {
+    gap: 0.5rem;
+  }
+
+  .pdp-add-to-cart-btn,
+  .pdp-buy-now-btn {
+    padding: 12px 10px;
+    font-size: 0.88rem;
   }
 }

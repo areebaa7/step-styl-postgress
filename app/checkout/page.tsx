@@ -406,6 +406,7 @@ function CheckoutContent() {
       const successParams = new URLSearchParams({ orderId, claim: conversionToken });
       checkoutAttemptRef.current = null;
       receiptUploadRef.current = null;
+      window.scrollTo({ top: 0, behavior: 'instant' });
       clearCart();
       router.push(`/order-success?${successParams.toString()}`);
     } catch (error) {

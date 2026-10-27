@@ -47,6 +47,13 @@ export default function CheckoutPage({ cartItems = [], setCurrentPage, onOrderSu
     return () => clearTimeout(timer);
   }, []);
 
+  // Ensure view smoothly scrolls to top when order completes or success state mounts
+  useEffect(() => {
+    if (successOrder) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [successOrder]);
+
   // Dynamic cart calculations
   const subtotal = cartItems.reduce((acc, item) => {
     const cleanPrice = Number(item.price) || 0;
@@ -113,9 +120,16 @@ export default function CheckoutPage({ cartItems = [], setCurrentPage, onOrderSu
       }
 
       setSuccessOrder(data.data || data.order || { id: 'SUCCESS' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       if (onOrderSuccess) onOrderSuccess(data.data || data.order);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');
+      setTimeout(() => {
+        const errorBanner = document.querySelector('.checkout-alert-error');
+        if (errorBanner) {
+          errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
     } finally {
       setLoading(false);
     }
@@ -159,7 +173,7 @@ export default function CheckoutPage({ cartItems = [], setCurrentPage, onOrderSu
           <h1>Thank you for your order!</h1>
           <p>Your order has been placed successfully.</p>
           <div className="success-actions">
-            <button className="btn-return-home" onClick={() => setCurrentPage('home')}>
+            <button className="btn-return-home" onClick={() => { window.scrollTo({ top: 0, behavior: 'instant' }); setCurrentPage('home'); }}>
               Continue Shopping
             </button>
           </div>
