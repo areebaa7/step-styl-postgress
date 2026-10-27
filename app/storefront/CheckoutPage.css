@@ -670,3 +670,42 @@
     max-width: 90vw;
   }
 }
+/* ==========================================
+   MOBILE RESPONSIVE FIX FOR BANK OFFER MODAL
+   ========================================== */
+@media (max-width: 480px) {
+  .bank-offer-modal-overlay {
+    padding: 0.75rem;
+    align-items: flex-end; /* Snug modal to bottom or center comfortably on small screens */
+  }
+
+  .bank-offer-modal-content {
+    padding: 1.75rem 1.25rem;
+    max-width: 100%;
+    max-height: 85vh; /* Prevents it from overflowing the screen */
+    overflow-y: auto;  /* Allows scrolling if content is long */
+    border-radius: 16px 16px 0 0; /* Modern bottom-sheet style on mobile */
+  }
+
+  .bank-offer-icon-box {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 0.75rem auto;
+  }
+
+  .bank-offer-modal-content h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .bank-offer-modal-content p {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .bank-offer-cta-btn {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+}
