@@ -96,8 +96,6 @@ export default function Footer({ setCurrentPage }) {
             <li onClick={() => window.open('https://wa.me/923329822592', '_blank')}>Contact Us</li>
             <li onClick={() => setCurrentPage('shipping-delivery')}>Shipping Information</li>
             <li onClick={() => setCurrentPage('returns-exchanges')}>Returns & Exchange</li>
-            <li onClick={() => setCurrentPage('shop')}>FAQs</li>
-            <li onClick={() => setCurrentPage('shop')}>Size Guide</li>
           </ul>
         </div>
 
@@ -107,12 +105,6 @@ export default function Footer({ setCurrentPage }) {
       <div className="footer-bottom">
         <div className="footer-bottom-container">
           <p>© 2026 Step & Styl. All rights reserved.</p>
-          
-          <div className="footer-payment-methods">
-            <span className="payment-badge"><CreditCard size={14} /> Direct Bank Transfer (5% Off)</span>
-            <span className="payment-badge"><ShieldCheck size={14} /> Cash on Delivery (Check Before Payment)</span>
-          </div>
-
           <div className="footer-support-info">
             <span>Support: +92 332 9822592</span>
           </div>

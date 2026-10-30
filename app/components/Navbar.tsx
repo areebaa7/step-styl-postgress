@@ -393,7 +393,15 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Nav Button */}
-            <div className="flex md:hidden items-center gap-2">
+            <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 rounded-full text-white hover:bg-white/10 transition"
+                aria-label="Search Products"
+                title="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="p-2 rounded-full text-white hover:bg-white/10 transition relative"

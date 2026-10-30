@@ -17,17 +17,17 @@ const WhatsAppButton = () => {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-[9999] group"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] group"
       aria-label="Contact us on WhatsApp"
     >
       <div className="relative">
         {/* Pulsing Ring Effect */}
         <div className="absolute inset-0 bg-[#25D366] rounded-full animate-ping opacity-25 group-hover:opacity-40 transition-opacity" />
         
-        {/* Main Button Container */}
-        <div className="relative bg-[#25D366] hover:bg-[#128C7E] text-white p-4 rounded-full shadow-2xl transition-all duration-300 group-hover:scale-110 active:scale-95 flex items-center justify-center">
+        {/* Main Button Container - Scaled to max 44px on mobile viewports */}
+        <div className="relative bg-[#25D366] hover:bg-[#128C7E] text-white p-2.5 sm:p-3 md:p-3.5 rounded-full shadow-2xl transition-all duration-300 group-hover:scale-110 active:scale-95 flex items-center justify-center">
           <svg
-            className="w-8 h-8"
+            className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
             fill="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"

@@ -67,7 +67,7 @@ export default function NewsletterSignupForm({
           onChange={(event) => setEmail(event.target.value)}
           placeholder="Your email address"
           aria-label="Email address for newsletter"
-          className={`min-w-0 flex-1 rounded-full border px-5 py-3 text-sm outline-none ${
+          className={`min-w-0 flex-1 rounded-full border px-4 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm outline-none transition-colors ${
             isDark
               ? 'border-white/15 bg-white/10 text-white placeholder:text-white/40 focus:border-purple-400'
               : 'border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-purple-500'
@@ -75,18 +75,18 @@ export default function NewsletterSignupForm({
         />
         <button
           disabled={isSubmitting}
-          className={`rounded-full bg-purple-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-purple-500 disabled:opacity-50 ${stacked ? 'self-start' : ''}`}
+          className={`rounded-full bg-purple-600 px-5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm font-bold text-white transition hover:bg-purple-500 disabled:opacity-50 ${stacked ? 'self-start' : ''}`}
         >
           {isSubmitting ? 'Joining...' : 'Subscribe'}
         </button>
       </div>
-      <label className={`mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
+      <label className={`mt-2 sm:mt-3 flex cursor-pointer items-start gap-2 text-[11px] sm:text-xs leading-4 sm:leading-5 ${isDark ? 'text-white/70' : 'text-gray-600'}`}>
         <input
           type="checkbox"
           required
           checked={consent}
           onChange={(event) => setConsent(event.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+          className="mt-0.5 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
         />
         <span>
           {consentText}{' '}

@@ -7,8 +7,7 @@ export default function KidsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to kids collection view
-    router.replace('/?view=kids');
+    router.replace('/products?gender=KIDS');
   }, [router]);
 
   return null;

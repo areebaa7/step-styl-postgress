@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductDetail from './ProductDetail';
 import { fetchProducts } from './utils/shopApi';
@@ -10,27 +10,35 @@ import './ShopPage.css';
 export default function MenShopPage({ onAddToCart, setCurrentPage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeSubcategory, setActiveSubcategory] = useState('all');
   const [currentPage, setCurrentPageNum] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      setLoading(true);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
       // Explicitly pass query parameter 'men' to the API so backend filters strictly
       const fetched = await fetchProducts('men');
-      if (isMounted) {
-        setProducts(Array.isArray(fetched) ? fetched : []);
-        setLoading(false);
-      }
+      setProducts(Array.isArray(fetched) ? fetched : []);
+    } catch (err) {
+      console.warn('Failed to load men products:', err);
+      setProducts([]);
+      setFetchError("Unable to load men's collection right now. Please check your internet connection.");
+    } finally {
+      setLoading(false);
     }
-    loadData();
-    return () => { isMounted = false; };
   }, []);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
   // Strict isolation for Men products only on frontend as a backup safeguard
-  const strictMenProducts = products.filter(item => {
+  const safeProducts = Array.isArray(products) ? products : [];
+  const strictMenProducts = safeProducts.filter(item => {
+    if (!item) return false;
     const g = (item.gender || '').toLowerCase().trim();
     const colName = (item.collection?.name || '').toLowerCase().trim();
     const colGender = (item.collection?.targetGender || '').toLowerCase().trim();
@@ -115,6 +123,11 @@ export default function MenShopPage({ onAddToCart, setCurrentPage }) {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: '#6B7280' }}>Loading men's collection...</div>
+      ) : fetchError ? (
+        <div className="shop-error-banner">
+          <p>{fetchError}</p>
+          <button className="shop-retry-btn" onClick={loadData}>Try Again</button>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: '#6B7280' }}>No products found in this category. Add them in your admin panel!</div>
       ) : (

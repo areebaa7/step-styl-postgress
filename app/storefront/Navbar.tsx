@@ -108,7 +108,13 @@ export default function Navbar({
             <button className="icon-btn" aria-label="Search" onClick={handleSearchToggle} title="Search">
               <Search size={20} />
             </button>
-            <button className="icon-btn" aria-label="Account" onClick={() => onOpenAuthModal('login')} title="Account">
+            <button className="icon-btn" aria-label="Account" onClick={() => {
+              if (authUser) {
+                window.location.href = authUser.role === 'ADMIN' ? '/admin' : '/account';
+              } else {
+                onOpenAuthModal('login');
+              }
+            }} title={authUser ? 'My Account' : 'Login'}>
               <User size={20} />
             </button>
             <button className="icon-btn" aria-label="Wishlist" onClick={() => handleNavClick('wishlist')} title="Wishlist">
@@ -154,11 +160,18 @@ export default function Navbar({
               {/* Login Button Placed at the TOP of the Mobile Drawer */}
               <div className="mobile-drawer-top-login">
                 <button 
-                  onClick={() => { onOpenAuthModal('login'); setMobileMenuOpen(false); }} 
+                  onClick={() => {
+                    if (authUser) {
+                      window.location.href = authUser.role === 'ADMIN' ? '/admin' : '/account';
+                    } else {
+                      onOpenAuthModal('login');
+                    }
+                    setMobileMenuOpen(false);
+                  }} 
                   className="mobile-drawer-login-btn-top"
                 >
                   <User size={18} />
-                  <span>Login / Register</span>
+                  <span>{authUser ? (authUser.name || 'My Account') : 'Login / Register'}</span>
                 </button>
               </div>
 

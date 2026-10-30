@@ -29,6 +29,7 @@ function ProductsContent() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
@@ -79,6 +80,7 @@ function ProductsContent() {
   const fetchProducts = async (currentFilters: FilterState) => {
     try {
       setLoading(true);
+      setFetchError(null);
       const params = new URLSearchParams();
       if (currentFilters.search) params.append('search', currentFilters.search);
       if (currentFilters.collectionId) params.append('collectionId', currentFilters.collectionId);
@@ -95,12 +97,21 @@ function ProductsContent() {
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
 
       const response = await fetch(`/api/products?${params.toString()}`);
+      if (!response.ok) {
+        setProducts([]);
+        setFetchError('Unable to load products. Please check your network connection.');
+        return;
+      }
       const data = await response.json();
-      if (data.success) {
+      if (data && data.success && Array.isArray(data.data)) {
         setProducts(data.data);
+      } else {
+        setProducts([]);
       }
     } catch (error) {
       console.error('Failed to fetch products:', error);
+      setProducts([]);
+      setFetchError('Unable to load products right now. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -385,6 +396,24 @@ function ProductsContent() {
               </div>
             )}
           </>
+        ) : fetchError ? (
+          <div className="text-center py-20 px-4">
+            <div className="w-14 h-14 mx-auto mb-4 bg-red-50 text-red-500 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900 mb-2">{fetchError}</h3>
+            <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
+              There was a problem reaching our product servers. Please verify your internet or try refreshing.
+            </p>
+            <button
+              onClick={() => fetchProducts(filters)}
+              className="px-8 py-3 bg-purple-600 text-white text-xs font-semibold tracking-wide rounded-full hover:bg-purple-700 transition-all shadow-xl shadow-purple-200"
+            >
+              Try Again
+            </button>
+          </div>
         ) : (
           <div className="text-center py-28">
             <div className="text-5xl mb-6">👟</div>

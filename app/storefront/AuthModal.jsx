@@ -9,12 +9,10 @@ import './AuthModal.css';
 export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Sync tab if props change
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
   
-  // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -22,11 +20,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   const [hasAdminKey, setHasAdminKey] = useState(false);
   const [adminKey, setAdminKey] = useState('');
   
-  // Forgot Password States
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
 
-  // UI Loading & Error states for backend sync
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -70,26 +66,24 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
     try {
       if (activeTab === 'login' || activeTab === 'admin') {
-        // Call backend Login API
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim(), password }),
         });
 
-          let data;
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.includes("application/json")) {
-            data = await response.json();
-          } else {
-            throw new Error('Server returned an unexpected response (Status ' + response.status + '). Please try again.');
-          }
+        let data;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          throw new Error('Server returned an unexpected response (Status ' + response.status + '). Please try again.');
+        }
 
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Invalid email or password.');
         }
 
-        // ROLE ISOLATION GUARDRAILS
         if (activeTab === 'login' && data.user && data.user.role === 'ADMIN') {
           await fetch('/api/auth/logout', { method: 'POST' });
           throw new Error('Please use the Admin Login form for administrative access.');
@@ -99,14 +93,12 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
           throw new Error('Access denied. Administrator privileges required.');
         }
 
-        // If admin role is returned, redirect to admin dashboard
         if (data.user && data.user.role === 'ADMIN') {
           window.location.href = '/admin';
         } else {
-          window.location.href = '/account'; // Strongly routes standard accounts
+          window.location.href = '/account';
         }
       } else {
-        // Call backend Registration API
         const payload = {
           email: email.trim(),
           password,
@@ -120,13 +112,13 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
           body: JSON.stringify(payload),
         });
 
-          let data;
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.includes("application/json")) {
-            data = await response.json();
-          } else {
-            throw new Error('Server returned an unexpected response (Status ' + response.status + '). Please try again.');
-          }
+        let data;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          throw new Error('Server returned an unexpected response (Status ' + response.status + '). Please try again.');
+        }
 
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Unable to create account.');
@@ -150,7 +142,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   return (
     <div className="auth-modal-overlay" onClick={onClose}>
       <motion.div 
-        className="auth-modal-content"
+        className="auth-modal-content w-full max-w-full box-border"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -161,45 +153,45 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
           <X size={20} />
         </button>
 
-        <div className="auth-tabs">
+        <div className="auth-tabs w-full">
           <button 
             className={`auth-tab-btn ${activeTab === 'login' ? 'active' : ''}`} 
             onClick={() => { setActiveTab('login'); setErrorMessage(''); setIsForgotPassword(false); }}
           >
-            Customer Login
+            Login
           </button>
           <button 
             className={`auth-tab-btn ${activeTab === 'signup' ? 'active' : ''}`} 
             onClick={() => { setActiveTab('signup'); setErrorMessage(''); setIsForgotPassword(false); }}
           >
-            Customer Sign Up
+            Sign Up
           </button>
           <button 
             className={`auth-tab-btn ${activeTab === 'admin' ? 'active' : ''}`} 
             onClick={() => { setActiveTab('admin'); setErrorMessage(''); setIsForgotPassword(false); }}
           >
-            Admin Login
+            Admin
           </button>
         </div>
 
-        <div className="auth-form-scroll-area">
+        <div className="auth-form-scroll-area w-full box-border">
           {errorMessage && (
-            <div style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '10px 12px', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+            <div style={{ backgroundColor: '#FEE2E2', color: '#991B1B', padding: '10px 12px', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500, boxSizing: 'border-box', width: '100%' }}>
               {errorMessage}
             </div>
           )}
           {resetMessage && (
-            <div style={{ backgroundColor: '#D1FAE5', color: '#065F46', padding: '10px 12px', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500 }}>
+            <div style={{ backgroundColor: '#D1FAE5', color: '#065F46', padding: '10px 12px', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 500, boxSizing: 'border-box', width: '100%' }}>
               {resetMessage}
             </div>
           )}
 
           {activeTab === 'login' ? (
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={handleSubmit} className="auth-form w-full">
               <h2>Customer Sign In</h2>
               <p className="auth-subtitle">Access your account to complete purchases or manage orders.</p>
               
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Email</label>
                 <input 
                   type="email" 
@@ -212,7 +204,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
               {!isForgotPassword ? (
                 <>
-                  <div className="form-group">
+                  <div className="form-group w-full">
                     <label>Password</label>
                     <input 
                       type="password" 
@@ -245,11 +237,11 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               </p>
             </form>
           ) : activeTab === 'admin' ? (
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={handleSubmit} className="auth-form w-full">
               <h2>Admin Sign In</h2>
               <p className="auth-subtitle">Log in to access the store management dashboard.</p>
               
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Admin Email</label>
                 <input 
                   type="email" 
@@ -260,7 +252,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Admin Password</label>
                 <input 
                   type="password" 
@@ -276,11 +268,11 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={handleSubmit} className="auth-form w-full">
               <h2>Create Account</h2>
               <p className="auth-subtitle">Join Step &amp; Styl for checkout and exclusive offers.</p>
 
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Full Name</label>
                 <input 
                   type="text" 
@@ -291,7 +283,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Email</label>
                 <input 
                   type="email" 
@@ -302,7 +294,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Password</label>
                 <input 
                   type="password" 
@@ -314,7 +306,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 <span className="password-hint">Use at least 8 characters combining letters and numbers.</span>
               </div>
 
-              <div className="form-group">
+              <div className="form-group w-full">
                 <label>Confirm Password</label>
                 <input 
                   type="password" 
@@ -325,7 +317,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 />
               </div>
 
-              <div className="form-group checkbox-group">
+              <div className="form-group checkbox-group w-full">
                 <label className="checkbox-label">
                   <input 
                     type="checkbox" 
@@ -337,7 +329,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               </div>
 
               {hasAdminKey && (
-                <div className="form-group admin-key-box">
+                <div className="form-group admin-key-box w-full box-border">
                   <label><Shield size={14} /> Administrative Key</label>
                   <input 
                     type="password" 

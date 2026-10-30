@@ -76,17 +76,34 @@ export default function AffiliateProgramPage() {
             <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-600">Payout</p><h2 className="mt-2 text-3xl font-bold text-gray-950">Published methods</h2><div className="mt-8 rounded-2xl border border-gray-200 p-6"><p className="text-sm text-gray-500">Available payout methods</p><div className="mt-4 flex flex-wrap gap-2">{affiliateProgram.payoutMethods.map((method) => <span key={method} className="rounded-full bg-gray-900 px-4 py-2 text-sm font-bold text-white">{method}</span>)}</div><p className="mt-6 text-sm leading-6 text-gray-600">Commission becomes earned when an order reaches: <strong>{affiliateProgram.eligibleOrderStatuses.join(', ')}</strong>.</p><p className="mt-3 text-sm leading-6 text-gray-600">Cancelled-order clawback: <strong>{affiliateProgram.cancelledOrderClawback ? 'Enabled' : 'Disabled'}</strong>. Returned/refunded-order clawback: <strong>{affiliateProgram.returnedOrderClawback ? 'Enabled' : 'Disabled'}</strong>.</p></div></div>
           </section>
 
-          <section className="grid gap-10 py-16 md:grid-cols-[0.9fr_1.1fr] md:py-24">
-            <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-600">Program terms</p><h2 className="mt-2 text-3xl font-bold text-gray-950">Know the rules before applying</h2><ul className="mt-7 space-y-4">{affiliateProgram.publicTerms.map((term) => <li key={term} className="flex gap-3 text-sm leading-6 text-gray-600"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-purple-600" />{term}</li>)}</ul></div>
-            <div className="rounded-3xl border border-purple-100 bg-[#FAF9FF] p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-gray-950">Apply for affiliate</h2>
-              {!affiliateProgram.enabled ? <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-semibold leading-6 text-amber-800">New affiliate applications are currently paused. Existing approved affiliates can continue using their dashboard.</div> : (
-                <form onSubmit={submit} className="mt-6 space-y-4">
+          <section className="grid gap-8 py-10 md:grid-cols-[0.9fr_1.1fr] md:py-24">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-purple-600">Program terms</p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-gray-950">Know the rules before applying</h2>
+              <ul className="mt-5 sm:mt-7 space-y-3 sm:space-y-4">
+                {affiliateProgram.publicTerms.map((term) => (
+                  <li key={term} className="flex gap-3 text-xs sm:text-sm leading-5 sm:leading-6 text-gray-600">
+                    <span className="mt-1.5 sm:mt-2 h-2 w-2 shrink-0 rounded-full bg-purple-600" />
+                    {term}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="w-full max-w-full rounded-2xl sm:rounded-3xl border border-purple-100 bg-[#FAF9FF] p-4 sm:p-8 box-border">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-950">Apply for affiliate</h2>
+              {!affiliateProgram.enabled ? (
+                <div className="mt-4 sm:mt-6 rounded-xl sm:rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5 text-xs sm:text-sm font-semibold leading-5 sm:leading-6 text-amber-800">
+                  New affiliate applications are currently paused. Existing approved affiliates can continue using their dashboard.
+                </div>
+              ) : (
+                <form onSubmit={submit} className="mt-4 sm:mt-6 space-y-3.5 sm:space-y-4 w-full">
                   <FormField label="Email address" type="email" value={form.email} placeholder="you@example.com" onChange={(email) => setForm((current) => ({ ...current, email }))} />
                   <FormField label="Primary channel URL" type="url" value={form.channelLink1} placeholder="https://instagram.com/..." onChange={(channelLink1) => setForm((current) => ({ ...current, channelLink1 }))} />
                   <FormField label="Second channel URL (optional)" type="url" required={false} value={form.channelLink2} placeholder="https://youtube.com/..." onChange={(channelLink2) => setForm((current) => ({ ...current, channelLink2 }))} />
-                  {notice && <div className={`rounded-xl border p-4 text-sm font-semibold ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>{notice.message}</div>}
-                  <button disabled={isSubmitting} className="w-full rounded-xl bg-purple-600 px-6 py-3.5 font-bold text-white shadow-lg shadow-purple-200 hover:bg-purple-700 disabled:opacity-50">{isSubmitting ? 'Submitting...' : 'Submit application'}</button>
+                  {notice && <div className={`rounded-xl border p-3.5 sm:p-4 text-xs sm:text-sm font-semibold ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>{notice.message}</div>}
+                  <button disabled={isSubmitting} className="w-full rounded-xl bg-purple-600 px-5 py-3 sm:px-6 sm:py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-purple-200 hover:bg-purple-700 disabled:opacity-50 transition-all">
+                    {isSubmitting ? 'Submitting...' : 'Submit application'}
+                  </button>
                 </form>
               )}
             </div>
@@ -98,4 +115,19 @@ export default function AffiliateProgramPage() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-6"><p className="text-xs font-bold uppercase tracking-wide text-purple-600">{label}</p><p className="mt-2 text-xl font-bold text-gray-950">{value}</p></div>; }
-function FormField({ label, type, value, placeholder, required = true, onChange }: { label: string; type: 'email' | 'url'; value: string; placeholder: string; required?: boolean; onChange: (value: string) => void }) { return <label className="block space-y-2 text-sm font-bold text-gray-700">{label}<input required={required} type={type} value={value} maxLength={500} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100" /></label>; }
+function FormField({ label, type, value, placeholder, required = true, onChange }: { label: string; type: 'email' | 'url'; value: string; placeholder: string; required?: boolean; onChange: (value: string) => void }) { 
+  return (
+    <label className="block space-y-1.5 sm:space-y-2 text-xs sm:text-sm font-bold text-gray-700 w-full">
+      {label}
+      <input 
+        required={required} 
+        type={type} 
+        value={value} 
+        maxLength={500} 
+        placeholder={placeholder} 
+        onChange={(event) => onChange(event.target.value)} 
+        className="w-full max-w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 box-border" 
+      />
+    </label>
+  ); 
+}

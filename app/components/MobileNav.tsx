@@ -214,7 +214,7 @@ export default function MobileNav({
             </Link>
 
             <Link
-              href="/#about"
+              href="/our-story"
               onClick={() => setIsOpen(false)}
               className="text-sm font-semibold tracking-wide p-4 hover:bg-lavender-light hover:text-lavender-dark rounded-xl transition-all"
             >

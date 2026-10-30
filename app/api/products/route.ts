@@ -176,10 +176,12 @@ export async function GET(request: NextRequest) {
         { collection: { name: { contains: cleanSearch, mode: 'insensitive' } } },
         { collection: { slug: { contains: cleanSearch, mode: 'insensitive' } } },
       ];
-      where.OR = [
-        ...(where.OR || []),
-        ...searchConditions,
-      ];
+      if (andConditions.length > 0) {
+        andConditions.push({ OR: searchConditions });
+        where.AND = andConditions;
+      } else {
+        where.OR = searchConditions;
+      }
     }
 
     let orderBy: any = { createdAt: 'desc' };

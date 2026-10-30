@@ -13,6 +13,7 @@ export default function WomenFavorites({ setCurrentPage }: { setCurrentPage: (pa
     async function fetchWomenProducts() {
       try {
         const res = await fetch('/api/products');
+        if (!res.ok) return;
         const json = await res.json();
         
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {

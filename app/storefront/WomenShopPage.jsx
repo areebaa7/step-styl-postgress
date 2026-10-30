@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductDetail from './ProductDetail';
 import { fetchProducts } from './utils/shopApi';
@@ -10,27 +10,35 @@ import './ShopPage.css';
 export default function WomenShopPage({ onAddToCart, setCurrentPage }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeSubcategory, setActiveSubcategory] = useState('all');
   const [currentPage, setCurrentPageNum] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      setLoading(true);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
       // Fetch all products to ensure category-specific items are not filtered out by the backend query
       const fetched = await fetchProducts();
-      if (isMounted) {
-        setProducts(Array.isArray(fetched) ? fetched : (fetched?.data || []));
-        setLoading(false);
-      }
+      setProducts(Array.isArray(fetched) ? fetched : (fetched?.data || []));
+    } catch (err) {
+      console.warn('Failed to load women products:', err);
+      setProducts([]);
+      setFetchError("Unable to load women's collection right now. Please check your internet connection.");
+    } finally {
+      setLoading(false);
     }
-    loadData();
-    return () => { isMounted = false; };
   }, []);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
   // Robust gender isolation: matches women, female, or items where gender is unassigned/loose
-  const strictWomenProducts = products.filter(item => {
+  const safeProducts = Array.isArray(products) ? products : [];
+  const strictWomenProducts = safeProducts.filter(item => {
+    if (!item) return false;
     const g = (item.gender || '').toLowerCase().trim();
     const colName = (item.collection?.name || '').toLowerCase().trim();
     const colGender = (item.collection?.targetGender || '').toLowerCase().trim();
@@ -123,6 +131,11 @@ export default function WomenShopPage({ onAddToCart, setCurrentPage }) {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: '#6B7280' }}>Loading women's collection...</div>
+      ) : fetchError ? (
+        <div className="shop-error-banner">
+          <p>{fetchError}</p>
+          <button className="shop-retry-btn" onClick={loadData}>Try Again</button>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: '#6B7280' }}>No products found in this category. Add them in your admin panel!</div>
       ) : (

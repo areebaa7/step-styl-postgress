@@ -14,6 +14,7 @@ export default function DynamicSaleBanner({ setCurrentPage }: { setCurrentPage: 
     async function fetchProducts() {
       try {
         const res = await fetch('/api/products');
+        if (!res.ok) return;
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setProducts(json.data.slice(0, 4));

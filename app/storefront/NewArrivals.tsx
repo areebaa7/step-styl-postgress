@@ -13,6 +13,7 @@ export default function NewArrivals({ setCurrentPage }: { setCurrentPage: (page:
     async function fetchAdminProducts() {
       try {
         const res = await fetch('/api/products');
+        if (!res.ok) return;
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           const formatted = json.data.map((item: any) => {

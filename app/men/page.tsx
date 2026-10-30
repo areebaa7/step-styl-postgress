@@ -7,7 +7,7 @@ export default function MenPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/?view=men');
+    router.replace('/products?gender=MEN');
   }, [router]);
 
   return null;

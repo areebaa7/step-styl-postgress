@@ -45,3 +45,18 @@
   visibility: visible;
   opacity: 1;
 }
+
+/* Mobile scaling - scaled down to max 44px */
+@media (max-width: 640px) {
+  .whatsapp-float-btn {
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+  .whatsapp-icon,
+  .whatsapp-float-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}

@@ -59,12 +59,12 @@ const Footer = () => {
   const hasPublicContact = Boolean(socialLinks.length || business.supportPhone || business.businessAddress);
 
   return (
-    <footer suppressHydrationWarning className="bg-[#110C1F] text-white pt-10 pb-6 md:pt-10 md:pb-8">
+    <footer suppressHydrationWarning className="bg-[#110C1F] text-white pt-6 pb-4 sm:pt-8 sm:pb-6 md:pt-10 md:pb-8">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 md:px-20">
         {/* Main Grid */}
-        <div className={`grid grid-cols-2 md:grid-cols-2 gap-x-0 gap-y-10 md:gap-y-12 lg:gap-y-0 mb-8 md:mb-10 ${hasPublicContact ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+        <div className={`grid grid-cols-2 md:grid-cols-2 gap-x-0 gap-y-6 sm:gap-y-8 md:gap-y-12 lg:gap-y-0 mb-6 sm:mb-8 md:mb-10 ${hasPublicContact ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
           {/* Brand Column - Full width on mobile */}
-          <div className="col-span-2 lg:col-span-1 flex flex-col gap-6 md:gap-8 items-start text-left lg:pr-8">
+          <div className="col-span-2 lg:col-span-1 flex flex-col gap-4 sm:gap-6 md:gap-8 items-start text-left lg:pr-8">
             <div>
               <Link href="/" className="group flex items-center justify-start h-4">
                 <Image
@@ -72,7 +72,7 @@ const Footer = () => {
                   alt="Step & Styl"
                   width={180}
                   height={50}
-                  className="object-contain h-14 md:h-16 w-auto transition-all duration-300 group-hover:scale-105"
+                  className="object-contain h-12 sm:h-14 md:h-16 w-auto transition-all duration-300 group-hover:scale-105"
                   priority
                 />
                 <div className="flex items-center -ml-4 md:-ml-5 mb-0 gap-1">
@@ -88,15 +88,15 @@ const Footer = () => {
                 </div>
               </Link>
             </div>
-            <p className="text-white text-sm md:text-base font-normal leading-relaxed tracking-wide max-w-[300px]">
+            <p className="text-white text-xs sm:text-sm md:text-base font-normal leading-relaxed tracking-wide max-w-[300px]">
               Premium footwear for the modern individual. Designed for absolute comfort, crafted for timeless style.
             </p>
           </div>
 
           {/* Customer service */}
           <div className="pr-4 md:pr-6 lg:border-l lg:border-white/15 lg:px-8">
-            <h4 className="font-semibold text-sm md:text-base tracking-wide text-[#A855F7] mb-6 md:mb-10">Customer service</h4>
-            <ul className="space-y-3 md:space-y-4 text-white text-sm md:text-[15px] font-medium tracking-wide">
+            <h4 className="font-semibold text-xs sm:text-sm md:text-base tracking-wide text-[#A855F7] mb-3 sm:mb-4 md:mb-10">Customer service</h4>
+            <ul className="space-y-2 sm:space-y-3 md:space-y-4 text-white text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">
               <li><Link href="/track-order" className="hover:text-yellow-300 transition-colors font-semibold text-yellow-300">📦 Track your order</Link></li>
               <li><Link href="/help-center" className="hover:text-yellow-300 transition-colors">Contact us</Link></li>
               <li><Link href="/shipping-delivery" className="hover:text-yellow-300 transition-colors">Shipping & delivery</Link></li>
@@ -108,8 +108,8 @@ const Footer = () => {
 
           {/* About us */}
           <div className="border-l border-white/15 pl-4 md:pl-6 lg:px-8">
-            <h4 className="font-semibold text-sm md:text-base tracking-wide text-[#A855F7] mb-6 md:mb-10">About us</h4>
-            <ul className="space-y-3 md:space-y-4 text-white text-sm md:text-[15px] font-medium tracking-wide">
+            <h4 className="font-semibold text-xs sm:text-sm md:text-base tracking-wide text-[#A855F7] mb-3 sm:mb-4 md:mb-10">About us</h4>
+            <ul className="space-y-2 sm:space-y-3 md:space-y-4 text-white text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">
               <li><Link href="/our-story" className="hover:text-yellow-300 transition-colors">Our story</Link></li>
             </ul>
           </div>
@@ -117,8 +117,8 @@ const Footer = () => {
           {/* Newsletter */}
           {hasHydrated && (
             <div className="col-span-2 lg:col-span-1 lg:border-l lg:border-white/15 lg:px-8">
-              <h4 className="font-semibold text-sm md:text-base tracking-wide text-[#A855F7] mb-6 md:mb-10">Newsletter</h4>
-              <p className="text-white/60 text-xs md:text-sm font-medium tracking-wide mb-4">
+              <h4 className="font-semibold text-xs sm:text-sm md:text-base tracking-wide text-[#A855F7] mb-2 sm:mb-3 md:mb-8">Newsletter</h4>
+              <p className="text-white/60 text-xs md:text-sm font-medium tracking-wide mb-2 sm:mb-3 md:mb-4">
                 New arrivals, private offers and style inspiration.
               </p>
               <NewsletterSignupForm
@@ -133,43 +133,43 @@ const Footer = () => {
 
           {/* Public contact details */}
           {hasPublicContact && <div className="col-span-2 sm:col-span-1 lg:border-l lg:border-white/15 lg:pl-8">
-            <h4 className="font-semibold text-sm md:text-base tracking-wide text-[#A855F7] mb-6 md:mb-8">Connect</h4>
-            <div className="flex gap-4 md:gap-5">
+            <h4 className="font-semibold text-xs sm:text-sm md:text-base tracking-wide text-[#A855F7] mb-3 sm:mb-4 md:mb-8">Connect</h4>
+            <div className="flex gap-3 sm:gap-4 md:gap-5">
               {socialLinks.map((social) => (
                 <Link
                   key={social.name}
                   href={social.url}
                   target={social.name !== 'Email' ? '_blank' : undefined}
                   rel={social.name !== 'Email' ? 'noopener noreferrer' : undefined}
-                  className={`w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 transition-all duration-300 ${social.hoverColor} group`}
+                  className={`w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/5 text-white border border-white/10 transition-all duration-300 ${social.hoverColor} group`}
                   aria-label={social.name}
                 >
                   <svg
-                    width="18"
-                    height="18"
+                    width="16"
+                    height="16"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110"
+                    className="sm:w-4 sm:h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110"
                   >
                     <path d={social.path} />
                   </svg>
                 </Link>
               ))}
             </div>
-            <div className="mt-5 space-y-2 text-sm text-white/70">
+            <div className="mt-4 sm:mt-5 space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-white/70">
               {business.supportPhone && <a className="block hover:text-yellow-300" href={`tel:${business.supportPhone}`}>{business.supportPhone}</a>}
-              {business.businessAddress && <p className="leading-6">{business.businessAddress}</p>}
+              {business.businessAddress && <p className="leading-5 sm:leading-6">{business.businessAddress}</p>}
             </div>
           </div>}
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800/50 pt-6 md:pt-8">
-          <p className="text-white text-sm font-medium tracking-wide text-center">&copy; 2026 Step & Styl. All rights reserved.</p>
+        <div className="border-t border-gray-800/50 pt-4 sm:pt-6 md:pt-8 pb-1 sm:pb-2 md:pb-0">
+          <p className="text-white text-xs sm:text-sm font-medium tracking-wide text-center">&copy; 2026 Step & Styl. All rights reserved.</p>
         </div>
       </div>
     </footer>

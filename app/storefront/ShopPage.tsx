@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ProductDetail from './ProductDetail';
 import StorefrontProductCard from './StorefrontProductCard';
@@ -19,34 +19,37 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [currentPageNum, setCurrentPageNum] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadCatalog() {
-      setLoading(true);
-      try {
-        const [fetchedProducts, collectionsRes] = await Promise.all([
-          fetchProducts(),
-          fetch('/api/collections').then((r) => r.json()).catch(() => ({ collections: [] })),
-        ]);
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const [fetchedProducts, collectionsRes] = await Promise.all([
+        fetchProducts(),
+        fetch('/api/collections')
+          .then((r) => (r.ok ? r.json() : { collections: [] }))
+          .catch(() => ({ collections: [] })),
+      ]);
 
-        if (isMounted) {
-          setProductCatalog(Array.isArray(fetchedProducts) ? fetchedProducts : []);
-          if (collectionsRes && Array.isArray(collectionsRes.collections)) {
-            setCollections(collectionsRes.collections);
-          }
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Failed to load shop catalog:', err);
-        if (isMounted) setLoading(false);
+      setProductCatalog(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+      if (collectionsRes && Array.isArray(collectionsRes.collections)) {
+        setCollections(collectionsRes.collections);
       }
+    } catch (err) {
+      console.error('Failed to load shop catalog:', err);
+      setProductCatalog([]);
+      setFetchError('Unable to load footwear catalog right now. Please check your connection.');
+    } finally {
+      setLoading(false);
     }
-    loadCatalog();
-    return () => { isMounted = false; };
   }, []);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
 
   // Filter products dynamically by selected collection
   const filteredProducts = useMemo(() => {
@@ -179,6 +182,13 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
       {loading ? (
         <div style={{ textAlign: 'center', padding: '5rem', color: '#6B7280' }}>
           Loading catalog from database...
+        </div>
+      ) : fetchError ? (
+        <div className="shop-error-banner">
+          <p>{fetchError}</p>
+          <button className="shop-retry-btn" onClick={loadCatalog}>
+            Try Again
+          </button>
         </div>
       ) : filteredProducts.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '5rem', color: '#6B7280' }}>

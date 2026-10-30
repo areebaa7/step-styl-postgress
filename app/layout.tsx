@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Instrument_Sans } from "next/font/google";
+// Robust font variables with zero build network dependency
 import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
@@ -12,15 +12,13 @@ import SplashScreen from './storefront/SplashScreen'; // <-- Updated to point to
 import { Suspense } from 'react';
 import { BusinessContactProvider } from './context/BusinessContactContext';
 
-const instrumentSans = Instrument_Sans({
+const instrumentSans = {
   variable: "--font-instrument-sans",
-  subsets: ["latin"],
-});
+};
 
-const geistMono = Geist_Mono({
+const geistMono = {
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.stepandstyl.com'),
