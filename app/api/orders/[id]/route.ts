@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { AUTH_COOKIE_NAME, verifyAuthToken } from '@/lib/auth';
-import { sendOrderApprovedEmail, sendOrderRejectedEmail, sendOrderDeliveredEmail } from '@/lib/email';
+import {
+  sendOrderApprovedEmail,
+  sendOrderRejectedEmail,
+  sendOrderDeliveredEmail,
+  sendOrderUndeliveredEmail,
+} from '@/lib/email';
 
 export async function PATCH(
   request: NextRequest,
@@ -40,12 +45,17 @@ export async function PATCH(
     let statusInput = body.status || body.action || body.state || body.newStatus || '';
     let cleanStatus = typeof statusInput === 'string' ? statusInput.trim().toUpperCase() : '';
 
-    // Map actions to your schema's OrderStatus enum: PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+    // Map actions to your schema's OrderStatus enum: PENDING, PAID, SHIPPED, COMPLETED, CANCELLED, RETURNED, etc.
     if (cleanStatus === 'CONFIRM' || cleanStatus === 'CONFIRMED' || cleanStatus === 'APPROVE') {
       cleanStatus = 'PAID'; 
     }
     if (cleanStatus === 'DISAPPROVE' || cleanStatus === 'REJECT' || cleanStatus === 'CANCEL') {
       cleanStatus = 'CANCELLED';
+    }
+    if (cleanStatus === 'SHIP') cleanStatus = 'SHIPPED';
+    if (cleanStatus === 'DELIVER') cleanStatus = 'DELIVERED';
+    if (cleanStatus === 'UNDELIVERED' || cleanStatus === 'RETURN' || cleanStatus === 'RETURN_SHIPMENT') {
+      cleanStatus = 'RETURNED';
     }
 
     const paymentStatusInput = body.paymentStatus;
@@ -54,6 +64,22 @@ export async function PATCH(
     // Map payment status if needed (schema uses: PENDING, APPROVED, DISAPPROVED)
     if (cleanPaymentStatus === 'CONFIRM') cleanPaymentStatus = 'APPROVED';
     if (cleanPaymentStatus === 'DISAPPROVE') cleanPaymentStatus = 'DISAPPROVED';
+
+    const noteInput = typeof body.adminNote === 'string' ? body.adminNote.trim() : (typeof body.reason === 'string' ? body.reason.trim() : '');
+
+    // Enforce mandatory reason for Undelivered / Return Shipment, Cancellation, or Disapproval
+    if ((cleanStatus === 'RETURNED' || cleanStatus === 'CANCELLED' || cleanPaymentStatus === 'DISAPPROVED') && !noteInput) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            cleanStatus === 'RETURNED'
+              ? 'Please provide a mandatory reason for marking the order as undelivered / return shipment.'
+              : 'Please provide a reason in the admin note.',
+        },
+        { status: 400 }
+      );
+    }
 
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
@@ -78,13 +104,20 @@ export async function PATCH(
       
       if (cleanPaymentStatus === 'APPROVED') {
         updateData.approvedAt = new Date();
+        // If payment approved and status was pending, advance order to PAID/processing
+        if (!cleanStatus && ['PENDING', 'PAYMENT_PENDING', 'NEW'].includes(existingOrder.status)) {
+          updateData.status = 'PAID';
+        }
       } else if (cleanPaymentStatus === 'DISAPPROVED') {
         updateData.disapprovedAt = new Date();
+        if (!cleanStatus && existingOrder.status !== 'CANCELLED') {
+          updateData.status = 'CANCELLED';
+        }
       }
     }
 
-    if (typeof body.adminNote === 'string') {
-      updateData.adminNote = body.adminNote.trim();
+    if (noteInput) {
+      updateData.adminNote = noteInput;
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -99,7 +132,7 @@ export async function PATCH(
       data: updateData,
     });
 
-    // Trigger emails on Payment Approval or Rejection
+    // Trigger emails on Payment Approval, Rejection, Delivery, or Return/Undelivered
     if (existingOrder.shippingEmail) {
       const isApproved =
         (updateData.paymentStatus === 'APPROVED' && existingOrder.paymentStatus !== 'APPROVED') ||
@@ -115,6 +148,9 @@ export async function PATCH(
         ['DELIVERED', 'COMPLETED'].includes(updateData.status) &&
         !['DELIVERED', 'COMPLETED'].includes(existingOrder.status);
 
+      const isReturned =
+        updateData.status === 'RETURNED' && existingOrder.status !== 'RETURNED';
+
       try {
         if (isApproved) {
           await sendOrderApprovedEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId);
@@ -125,6 +161,9 @@ export async function PATCH(
         } else if (isDelivered) {
           await sendOrderDeliveredEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId);
           console.log(`Delivered success email sent to ${existingOrder.shippingEmail}`);
+        } else if (isReturned) {
+          await sendOrderUndeliveredEmail(existingOrder.shippingEmail, existingOrder.shippingName || 'Customer', orderId, noteInput);
+          console.log(`Undelivered / return email sent to ${existingOrder.shippingEmail}`);
         }
       } catch (emailErr) {
         console.error('Failed to send status update email:', emailErr);

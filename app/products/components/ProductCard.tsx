@@ -65,7 +65,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     (product.salePrice && product.salePrice > product.price),
   );
 
-  const discountPercent = product.discount && product.discount > 0 ? product.discount : null;
+  const discountPercent = product.discount && product.discount > 0 ? product.discount : (product.salePrice && product.salePrice > product.price ? Math.round(((product.salePrice - product.price) / product.salePrice) * 100) : null);
 
   const price = product.discount && product.discount > 0
     ? Math.round(product.price * (1 - product.discount / 100))

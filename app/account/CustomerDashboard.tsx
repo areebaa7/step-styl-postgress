@@ -316,7 +316,7 @@ export default function CustomerDashboard({
           </div>
 
           <div className="dashboard-header-actions">
-            <Link href="/products" className="btn-primary" style={{ textDecoration: 'none' }}>
+            <Link href="/?view=shop" className="btn-primary" style={{ textDecoration: 'none' }}>
               <ShoppingBag size={16} /> Explore Footwear
             </Link>
             <button onClick={onLogout} className="btn-signout" title="Sign out of your account">
@@ -520,7 +520,7 @@ export default function CustomerDashboard({
                     <p className="text-sm text-gray-500 max-w-sm mx-auto mt-1 mb-5">
                       Explore our handcrafted luxury footwear collection and place your first order with Open Parcel Inspection.
                     </p>
-                    <Link href="/products" className="btn-primary" style={{ textDecoration: 'none' }}>
+                    <Link href="/?view=shop" className="btn-primary" style={{ textDecoration: 'none' }}>
                       Start Shopping
                     </Link>
                   </div>

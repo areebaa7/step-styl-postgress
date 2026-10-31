@@ -90,11 +90,18 @@ export default function MensStylesCarousel({ setCurrentPage }: { setCurrentPage:
       <div className="mens-styles-container">
         
         {/* Section Header */}
-        <div className="mens-styles-header">
+        <div className="mens-styles-header flex justify-between items-end">
           <div>
             <span className="mens-styles-eyebrow">Curated Selection</span>
             <h2 className="mens-styles-title">Shop Men's Styles</h2>
           </div>
+          <button 
+            type="button" 
+            onClick={() => setCurrentPage('men')} 
+            className="text-xs font-bold uppercase tracking-wider text-purple-700 hover:text-black transition-colors pb-1 cursor-pointer"
+          >
+            View All Men's &rarr;
+          </button>
         </div>
 
         {/* Auto-Moving Infinite Carousel Track (Only renders if products exist) */}

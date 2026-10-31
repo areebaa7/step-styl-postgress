@@ -3,12 +3,20 @@ import { logError, logInfo } from './logger';
 
 export { buildPromoEmail } from './emailTemplate.mjs';
 
-const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+const smtpHost = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
 const smtpPort = Number(process.env.SMTP_PORT || 465);
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
-const smtpFrom = process.env.SMTP_FROM || `IPL Store <${smtpUser}>`;
-const emailDeliveryEnabled = process.env.EMAIL_DELIVERY_ENABLED === 'true';
+const smtpUser = process.env.SMTP_USER?.trim();
+const smtpPass = process.env.SMTP_PASS?.trim();
+const smtpFrom = process.env.SMTP_FROM?.trim() || `Step & Styl <${smtpUser || 'no-reply@stepandstyl.com'}>`;
+
+// Determine email delivery toggle:
+// 1. If EMAIL_DELIVERY_ENABLED is explicitly set, check for 'true' or '1'
+// 2. If EMAIL_DELIVERY_ENABLED is not set at all, automatically enable when valid SMTP credentials exist in production/server
+const rawDeliveryEnv = process.env.EMAIL_DELIVERY_ENABLED?.trim().toLowerCase();
+const emailDeliveryEnabled =
+  rawDeliveryEnv !== undefined && rawDeliveryEnv !== ''
+    ? rawDeliveryEnv === 'true' || rawDeliveryEnv === '1'
+    : Boolean(smtpUser && smtpPass);
 
 const transporter =
   emailDeliveryEnabled && smtpUser && smtpPass
@@ -20,9 +28,9 @@ const transporter =
           user: smtpUser,
           pass: smtpPass,
         },
-        connectionTimeout: 5_000,
-        greetingTimeout: 5_000,
-        socketTimeout: 10_000,
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
       })
     : null;
 
@@ -39,7 +47,7 @@ export function getEmailDeliveryStatus() {
     ...(!smtpPass ? ['SMTP_PASS'] : []),
   ];
   return {
-    mode: transporter ? 'SMTP' as const : 'PROVIDERLESS' as const,
+    mode: transporter ? ('SMTP' as const) : ('PROVIDERLESS' as const),
     configured: Boolean(transporter),
     deliveryEnabled: emailDeliveryEnabled,
     missing,
@@ -48,23 +56,75 @@ export function getEmailDeliveryStatus() {
 
 export async function verifyEmailConfiguration() {
   if (!transporter) return getEmailDeliveryStatus();
-  await transporter.verify();
+  try {
+    await transporter.verify();
+  } catch (verifyError: any) {
+    console.error('[SMTP VERIFY ERROR]', {
+      message: verifyError?.message || String(verifyError),
+      code: verifyError?.code,
+      command: verifyError?.command,
+      host: smtpHost,
+      port: smtpPort,
+      user: smtpUser,
+    });
+    logError('email.verify_failed', {
+      error: verifyError?.message,
+      code: verifyError?.code,
+    });
+  }
   return getEmailDeliveryStatus();
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   if (!transporter) {
-    logInfo('email.delivery_skipped', { reason: 'provider_not_configured', channel: 'single' });
+    const status = getEmailDeliveryStatus();
+    console.warn('[SMTP EMAIL SKIPPED]', {
+      reason: 'transporter_not_configured',
+      missing: status.missing,
+      recipient: to,
+      subject,
+    });
+    logInfo('email.delivery_skipped', {
+      reason: 'provider_not_configured',
+      channel: 'single',
+      missing: status.missing,
+    });
     return false;
   }
 
-  await transporter.sendMail({
-    from: smtpFrom,
-    to,
-    subject,
-    html,
-  });
-  return true;
+  try {
+    const info = await transporter.sendMail({
+      from: smtpFrom,
+      to,
+      subject,
+      html,
+    });
+    console.log('[SMTP EMAIL SENT SUCCESSFULLY]', {
+      to,
+      subject,
+      messageId: info?.messageId,
+      response: info?.response,
+    });
+    return true;
+  } catch (err: any) {
+    console.error('[SMTP EMAIL ERROR]', {
+      to,
+      subject,
+      errorMessage: err?.message || String(err),
+      errorCode: err?.code,
+      errorCommand: err?.command,
+      errorResponse: err?.response,
+      errorResponseCode: err?.responseCode,
+    });
+    logError('email.send_failed', {
+      to,
+      subject,
+      error: err?.message,
+      code: err?.code,
+    });
+    // Never rethrow to protect callers from crashing on email send failures
+    return false;
+  }
 }
 
 interface SendBulkEmailOptions {
@@ -210,6 +270,19 @@ export async function sendOrderDeliveredEmail(to: string, name: string, orderId:
       <p>Your order <strong>#${orderId}</strong> has been marked as delivered.</p>
       <p>We hope you love your new footwear! If you enjoy your purchase, please take a moment to leave a review and share your style with us.</p>
       <p style="margin-top: 24px;">Thank you for choosing Step & Styl!</p>
+    </div>`;
+  return sendEmail({ to, subject, html });
+}
+
+export async function sendOrderUndeliveredEmail(to: string, name: string, orderId: string, reason?: string) {
+  const subject = 'Order Delivery Update - Step & Styl';
+  const html = `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1F2937;">
+      <h2 style="color: #DC2626;">Delivery Update for Order #${orderId}</h2>
+      <p>Hi ${name || 'Customer'},</p>
+      <p>We attempted to deliver your order <strong>#${orderId}</strong>, but the shipment was returned or marked as undelivered.</p>
+      ${reason ? `<div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; padding: 12px; border-radius: 6px; margin: 16px 0;"><strong style="color: #991B1B;">Reason:</strong> ${reason}</div>` : ''}
+      <p>If you would like to reschedule the delivery or update your delivery address, please reply to this email or contact our support team on WhatsApp.</p>
+      <p style="margin-top: 24px;">Thank you for shopping with Step & Styl.</p>
     </div>`;
   return sendEmail({ to, subject, html });
 }

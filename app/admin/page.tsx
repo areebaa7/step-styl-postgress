@@ -256,7 +256,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 w-full max-w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 w-full box-border overflow-x-hidden">
         {/* Tabs */}
         <div className="mb-8 rounded-2xl border border-gray-200 bg-gray-50/80 p-2 shadow-sm">
           <nav

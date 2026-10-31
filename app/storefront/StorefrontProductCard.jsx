@@ -2,15 +2,15 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Heart } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { useWishlist } from '@/app/context/WishlistContext';
+import { getProductDiscountBadge } from './utils/discount';
 
-export default function StorefrontProductCard({ product, index, onSelectProduct }) {
+export default function StorefrontProductCard({ product, index, onSelectProduct, onAddToCart }) {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const isWishlisted = isInWishlist(product.id);
 
   const [selectedColor, setSelectedColor] = useState(null);
-  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // Check out of stock
   const variants = Array.isArray(product.variants) ? product.variants : [];
@@ -46,8 +46,6 @@ export default function StorefrontProductCard({ product, index, onSelectProduct 
     return product.image || (Array.isArray(product.images) && product.images[0]) || '/logo_main.png';
   }, [product.image, product.images, product.colorVariants, variants, selectedColor]);
 
-  const cardDescription = product.shortDescription || product.description || '';
-
   const swatchColors = useMemo(() => {
     if (Array.isArray(product.colors) && product.colors.length > 0) {
       return product.colors;
@@ -59,16 +57,19 @@ export default function StorefrontProductCard({ product, index, onSelectProduct 
     return [];
   }, [product.colors, variants]);
 
+  // Universal dynamic discount calculation
+  const discountBadge = getProductDiscountBadge(product) || product.discount;
+
   return (
     <motion.div
       className="shop-product-card relative cursor-pointer"
-      onClick={() => onSelectProduct(product)}
+      onClick={() => onSelectProduct && onSelectProduct(product)}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: (index % 8) * 0.05 }}
     >
       <div className="shop-image-box relative overflow-hidden">
-        {/* Wishlist Heart Toggle Button */}
+        {/* Wishlist Heart Toggle Button Overlay */}
         <button
           type="button"
           onClick={(e) => {
@@ -97,8 +98,9 @@ export default function StorefrontProductCard({ product, index, onSelectProduct 
           />
         </button>
 
-        {product.discount && !isOutOfStock && (
-          <span className="shop-discount-tag">{product.discount}</span>
+        {/* Universal Dynamic Discount Percentage Badge */}
+        {discountBadge && !isOutOfStock && (
+          <span className="shop-discount-tag">{discountBadge}</span>
         )}
 
         {isOutOfStock && (
@@ -156,68 +158,23 @@ export default function StorefrontProductCard({ product, index, onSelectProduct 
         <span className="shop-sale-price">{product.formattedPrice || product.price}</span>
       </div>
 
-      {/* Collapsible Product Description (Accordion / Toggle) */}
-      {cardDescription && (
-        <div
-          className="shop-desc-toggle-wrapper"
-          style={{
-            marginTop: '0.4rem',
-            borderTop: '1px solid #F3F4F6',
-            paddingTop: '0.35rem',
-            width: '100%',
-          }}
-        >
-          <button
-            type="button"
-            aria-expanded={isDescExpanded}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsDescExpanded((prev) => !prev);
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#7C3AED',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              padding: '2px 0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-            }}
-          >
-            <span>{isDescExpanded ? 'Hide Details' : 'Details'}</span>
-            {isDescExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          <div
-            style={{
-              maxHeight: isDescExpanded ? '160px' : '0px',
-              overflow: 'hidden',
-              transition: 'max-height 0.3s ease, opacity 0.25s ease',
-              opacity: isDescExpanded ? 1 : 0,
-            }}
-          >
-            <p
-              style={{
-                fontSize: '0.75rem',
-                color: '#4B5563',
-                margin: '4px 0 0',
-                lineHeight: 1.4,
-                background: '#F9FAFB',
-                padding: '6px 8px',
-                borderRadius: '6px',
-                textAlign: 'left',
-              }}
-            >
-              {cardDescription}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Action Button: Opens Product Detail View for Explicit Size & Color Selection */}
+      <button
+        type="button"
+        disabled={isOutOfStock}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (onSelectProduct) {
+            onSelectProduct(product);
+          }
+        }}
+        className={`shop-quick-add-btn ${isOutOfStock ? 'disabled' : ''}`}
+        aria-label={isOutOfStock ? 'Sold Out' : `Select Size & Options for ${product.title}`}
+      >
+        <ShoppingBag size={13} />
+        <span>{isOutOfStock ? 'Sold Out' : 'Select Options'}</span>
+      </button>
     </motion.div>
   );
 }

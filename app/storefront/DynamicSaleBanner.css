@@ -17,41 +17,51 @@
   box-shadow: 0 25px 35px -12px rgba(155, 77, 224, 0.15);
 }
 
-/* Infinite Auto-Scrolling Trust Ticker Styles */
-.trust-ticker-container {
+/* Infinite Auto-Scrolling Carousel Styles */
+.flash-sale-ticker-container {
   width: 100%;
   overflow: hidden;
   position: relative;
   display: flex;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
 }
 
-.trust-ticker-track {
+.flash-sale-ticker-track {
   display: flex;
   width: max-content;
-  animation: trustTickerScroll 30s linear infinite;
+  gap: 1.5rem;
+  animation: flashSaleScroll 35s linear infinite;
   will-change: transform;
 }
 
-.trust-ticker-container:hover .trust-ticker-track {
+.flash-sale-ticker-container:hover .flash-sale-ticker-track,
+.flash-sale-ticker-container:active .flash-sale-ticker-track {
   animation-play-state: paused;
 }
 
-@keyframes trustTickerScroll {
+@keyframes flashSaleScroll {
   0% {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(calc(-33.333%));
+    transform: translateX(calc(-33.333% - 0.75rem));
   }
 }
 
-/* Mobile Responsiveness for Trust Banner */
+.flash-sale-item {
+  flex: 0 0 280px;
+  width: 280px;
+}
+
+/* Mobile Responsiveness for Carousel */
 @media (max-width: 768px) {
-  .trust-ticker-track {
-    animation-duration: 22s;
+  .flash-sale-item {
+    flex: 0 0 240px;
+    width: 240px;
   }
-  
-  .trust-ticker-item {
-    padding: 0 1rem;
+  .flash-sale-ticker-track {
+    animation-duration: 25s;
+    gap: 1rem;
   }
 }

@@ -216,8 +216,10 @@ export async function GET(request: NextRequest) {
       let parsedSizes = (product as any).sizes;
       if (!parsedSizes || !Array.isArray(parsedSizes) || parsedSizes.length === 0) {
         if (variants.length > 0) {
-          parsedSizes = variants.map((v: any) => v.size).filter(Boolean);
+          parsedSizes = Array.from(new Set(variants.map((v: any) => v.size).filter(Boolean)));
         }
+      } else {
+        parsedSizes = Array.from(new Set(parsedSizes.map(String).map((s: string) => s.trim()).filter(Boolean)));
       }
       if (!parsedSizes || parsedSizes.length === 0) {
         parsedSizes = ['36', '37', '38', '39', '40', '41', '42'];

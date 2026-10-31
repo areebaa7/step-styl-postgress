@@ -313,14 +313,21 @@ export default function ProductDetailPage() {
     router.push('/checkout');
   };
 
-  const availableSizes = Array.from(new Set(product.variants?.map((v) => v.size) || []))
-    .filter(Boolean)
-    .sort((a, b) => {
-      const numA = parseFloat(a as string);
-      const numB = parseFloat(b as string);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      return (a as string).localeCompare(b as string);
-    });
+  const availableSizes = Array.from(
+    new Set(
+      [
+        ...(product.variants?.map((v) => v.size) || []),
+        ...((product as any).sizes || [])
+      ]
+        .filter(Boolean)
+        .map((s) => String(s).trim())
+    )
+  ).sort((a, b) => {
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b, undefined, { numeric: true });
+  });
 
   const availableColors = Array.from(new Set(product.variants?.map((v) => v.color) || []))
     .filter((color) => Boolean(color));

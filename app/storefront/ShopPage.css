@@ -268,6 +268,40 @@
   font-weight: 700;
 }
 
+/* Quick Add to Cart Button */
+.shop-quick-add-btn {
+  width: 100%;
+  margin-top: 0.65rem;
+  padding: 8px 12px;
+  font-family: system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background-color: #1F2937;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shop-quick-add-btn:hover:not(.disabled) {
+  background-color: #7C3AED;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  transform: translateY(-1px);
+}
+
+.shop-quick-add-btn.disabled {
+  background-color: #E5E7EB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+}
+
 /* Error Banner & Retry Button */
 .shop-error-banner {
   max-width: 500px;

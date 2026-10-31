@@ -170,7 +170,7 @@ const [loading, setLoading] = useState(false);
             </motion.div>
 
             <motion.div className="tier-card-image" whileHover={{ y: -4 }} transition={{ duration: 0.3 }}>
-              <img src="/assets/affiliate.jpg" alt="Content Creators" />
+              <img src="/assets/women-lilac-shoes.jpeg" alt="Content Creators" />
             </motion.div>
 
             <motion.div className="tier-card featured" whileHover={{ y: -4 }} transition={{ duration: 0.3 }}>

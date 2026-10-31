@@ -10,16 +10,29 @@ const heroMedia = [
     type: 'image',
     url: '/assets/banner.jpg',
     mobileUrl: '/assets/mobile-banner.jpg',
+    target: 'shop',
+    btnLabel: 'EXPLORE FOOTWEAR',
   },
   {
     type: 'image',
     url: '/assets/mens-banner.jpg',
     mobileUrl: '/assets/mens-mobile.jpg',
+    target: 'men',
+    btnLabel: 'SHOP MEN',
   },
   {
     type: 'image',
     url: '/assets/women-banner.jpg',
     mobileUrl: '/assets/mobile-banner2.jpg',
+    target: 'women',
+    btnLabel: 'SHOP WOMEN',
+  },
+  {
+    type: 'image',
+    url: '/assets/kids-banner.jpg',
+    mobileUrl: '/assets/kids-mobile.jpg',
+    target: 'kids',
+    btnLabel: 'SHOP KIDS',
   },
 ];
 
@@ -45,7 +58,8 @@ export default function Hero({ setCurrentPage }: HeroProps) {
       <AnimatePresence mode="wait">
         <motion.div 
           key={currentIndex}
-          className="hero-slide active"
+          className="hero-slide active cursor-pointer"
+          onClick={() => setCurrentPage(currentMedia.target || 'shop')}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

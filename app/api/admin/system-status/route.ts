@@ -32,8 +32,11 @@ export async function GET(request: Request) {
     const [newsletter, storefront] = await Promise.all([getNewsletterSettings(), getStorefrontSettings()]);
     const recovery = storefront.abandonedCartRecovery;
     const smtpCredentialsMissing = getMissing(['SMTP_USER', 'SMTP_PASS']);
+    const rawDeliveryEnv = process.env.EMAIL_DELIVERY_ENABLED?.trim().toLowerCase();
     const smtpDeliveryEnabled =
-      process.env.EMAIL_DELIVERY_ENABLED?.trim().toLowerCase() === 'true';
+      rawDeliveryEnv !== undefined && rawDeliveryEnv !== ''
+        ? rawDeliveryEnv === 'true' || rawDeliveryEnv === '1'
+        : smtpCredentialsMissing.length === 0;
     const smtpConfigured =
       smtpDeliveryEnabled && smtpCredentialsMissing.length === 0;
     const smtpMissing = [

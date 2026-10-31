@@ -38,20 +38,30 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState('home');
 
   // Synchronize initial page from URL query params or restore view
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const view = searchParams.get('view');
+    const cat = searchParams.get('category');
+    if (cat) setCategoryFilter(cat);
     if (view && ['home', 'shop', 'women', 'men', 'kids', 'checkout', 'affiliate', 'shipping-delivery', 'returns-exchanges', 'wishlist'].includes(view)) {
       setCurrentPage(view);
     }
 
     const handlePopState = (e: PopStateEvent) => {
       const stateView = e.state?.view;
+      const stateCat = e.state?.category;
+      if (stateCat !== undefined) {
+        setCategoryFilter(stateCat);
+      }
       if (stateView) {
         setCurrentPage(stateView);
       } else {
         const params = new URLSearchParams(window.location.search);
         const currentView = params.get('view');
+        const currentCat = params.get('category');
+        setCategoryFilter(currentCat || null);
         if (currentView && ['home', 'shop', 'women', 'men', 'kids', 'checkout', 'affiliate', 'shipping-delivery', 'returns-exchanges', 'wishlist'].includes(currentView)) {
           setCurrentPage(currentView);
         } else {
@@ -64,18 +74,35 @@ export default function Home() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // History-aware page navigation
-  const handleNavigatePage = (page: string) => {
-    setCurrentPage(page);
+  // History-aware page navigation with category filter support
+  const handleNavigatePage = (page: string, category?: string) => {
+    if (page === 'men' || page === 'women' || page === 'kids') {
+      setCurrentPage(page);
+      setCategoryFilter(category || null);
+    } else if (category && ['men', 'women', 'kids'].includes(category.toLowerCase())) {
+      setCurrentPage(category.toLowerCase());
+      setCategoryFilter(null);
+    } else {
+      setCurrentPage(page);
+      setCategoryFilter(category || null);
+    }
+
     try {
       if (typeof window !== 'undefined') {
-        const newUrl = page === 'home' ? window.location.pathname : `?view=${page}`;
-        window.history.pushState({ view: page }, '', newUrl);
+        const targetView = (page === 'men' || page === 'women' || page === 'kids')
+          ? page
+          : (category && ['men', 'women', 'kids'].includes(category.toLowerCase()))
+            ? category.toLowerCase()
+            : page;
+        const query = category ? `?view=${targetView}&category=${encodeURIComponent(category)}` : `?view=${targetView}`;
+        const newUrl = targetView === 'home' ? window.location.pathname : query;
+        window.history.pushState({ view: targetView, category }, '', newUrl);
       }
     } catch {
       // Fallback
     }
   };
+
   const [showSplash, setShowSplash] = useState(true);
   
   const { items: cartItems, addItem, removeItem, updateQuantity, clearCart, isCartOpen, setIsCartOpen } = useCart();
@@ -192,11 +219,11 @@ export default function Home() {
             <FollowUsSection />
           </>
         ) : currentPage === 'shop' ? (
-          <ShopPage setCurrentPage={handleNavigatePage} onAddToCart={handleAddToCart} />
+          <ShopPage setCurrentPage={handleNavigatePage} onAddToCart={handleAddToCart} initialCollection={categoryFilter || 'all'} />
         ) : currentPage === 'women' ? (
-          <WomenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
+          <WomenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} initialSubcategory={categoryFilter || 'all'} />
         ) : currentPage === 'men' ? (
-          <MenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
+          <MenShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} initialSubcategory={categoryFilter || 'all'} />
         ) : currentPage === 'kids' ? (
           <KidsShopPage onAddToCart={handleAddToCart} setCurrentPage={handleNavigatePage} />
         ) : currentPage === 'checkout' ? (

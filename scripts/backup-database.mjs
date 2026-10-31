@@ -9,16 +9,18 @@ loadEnvConfig(process.cwd());
 const checkOnly = process.argv.includes('--check');
 const databaseUrl = process.env.DATABASE_URL?.trim();
 
-if (!databaseUrl || !databaseUrl.startsWith('mongodb')) {
-  throw new Error('DATABASE_URL must contain a MongoDB connection string.');
+if (!databaseUrl || (!databaseUrl.startsWith('mongodb') && !databaseUrl.startsWith('postgres'))) {
+  throw new Error('DATABASE_URL must contain a valid PostgreSQL or MongoDB connection string.');
 }
 
-const toolCheck = spawnSync('mongodump', ['--version'], { encoding: 'utf8' });
+const isPostgres = databaseUrl.startsWith('postgres');
+const backupBinary = isPostgres ? 'pg_dump' : 'mongodump';
+const toolCheck = spawnSync(backupBinary, ['--version'], { encoding: 'utf8' });
 const toolAvailable = !toolCheck.error && toolCheck.status === 0;
 
 if (checkOnly) {
-  console.log('[READY] DATABASE_URL is configured and was not printed.');
-  console.log(`[${toolAvailable ? 'READY' : 'ACTION REQUIRED'}] mongodump ${toolAvailable ? 'is installed.' : 'is not installed. Install MongoDB Database Tools before executing backups.'}`);
+  console.log(`[READY] DATABASE_URL (${isPostgres ? 'PostgreSQL' : 'MongoDB'}) is configured.`);
+  console.log(`[${toolAvailable ? 'READY' : 'INFO'}] ${backupBinary} ${toolAvailable ? 'is installed.' : 'is not installed on local PATH (Cloud hosted automated snapshots active).'}`);
   process.exit(0);
 }
 

@@ -14,10 +14,16 @@ interface ShopPageProps {
   onAddToCart: (item: any) => void;
 }
 
-export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps) {
+export default function ShopPage({ setCurrentPage, onAddToCart, initialCollection = "all" }: ShopPageProps & { initialCollection?: string }) {
   const [productCatalog, setProductCatalog] = useState<any[]>([]);
   const [collections, setCollections] = useState<CollectionDTO[]>([]);
-  const [selectedCollection, setSelectedCollection] = useState<string>('all');
+  const [selectedCollection, setSelectedCollection] = useState<string>(initialCollection);
+
+  useEffect(() => {
+    if (initialCollection) {
+      setSelectedCollection(initialCollection);
+    }
+  }, [initialCollection]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [currentPageNum, setCurrentPageNum] = useState(1);
@@ -87,32 +93,10 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
     setCurrentPageNum(1);
   };
 
-  // Build dynamic collection selector items
-  const dynamicCategories = useMemo(() => {
-    const list = [
-      { id: 'all', label: 'All Footwear', image: '/assets/women-formal.jpg' },
-    ];
-
-    if (collections.length > 0) {
-      collections.forEach((c) => {
-        list.push({
-          id: c.slug || c.id,
-          label: c.name,
-          image: c.image || '/assets/shoe-2.jpeg',
-        });
-      });
-    } else {
-      list.push(
-        { id: 'women', label: 'Women', image: '/assets/women-mustardshoes.jpeg' },
-        { id: 'men', label: 'Men', image: '/assets/sneaker-4.jpeg' },
-        { id: 'kids', label: 'Kids', image: '/assets/kids-2.jpeg' }
-      );
-    }
-    return list;
-  }, [collections]);
-
-  // Tripled array for smooth infinite ticker looping
-  const loopingCategories = [...dynamicCategories, ...dynamicCategories, ...dynamicCategories];
+  const activeColObj = collections.find((c) => (c.slug || c.id) === selectedCollection);
+  const displayTitle = selectedCollection === 'all'
+    ? 'Shop Footwear Collection'
+    : `${activeColObj ? activeColObj.name : selectedCollection.toUpperCase()} Collection`;
 
   if (selectedProduct) {
     return (
@@ -125,11 +109,6 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
     );
   }
 
-  const activeColObj = collections.find((c) => (c.slug || c.id) === selectedCollection);
-  const displayTitle = selectedCollection === 'all'
-    ? 'Shop Footwear Collection'
-    : `${activeColObj ? activeColObj.name : selectedCollection.toUpperCase()} Collection`;
-
   return (
     <div className="shop-page-container">
       <motion.h1 
@@ -140,30 +119,6 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
       >
         {displayTitle}
       </motion.h1>
-
-      {/* Dynamic Collection Circle Selector */}
-      <div className="shop-categories-row">
-        <div className="categories-ticker-track">
-          {loopingCategories.map((cat, idx) => {
-            const isSelected = selectedCollection === cat.id;
-            return (
-              <div 
-                key={`${cat.id}-${idx}`}
-                className={`category-circle-item ${isSelected ? 'active' : ''}`} 
-                onClick={() => handleCollectionSelect(cat.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className={`circle-image-wrapper ${isSelected ? 'ring-2 ring-[#9b4de0] ring-offset-2' : ''}`}>
-                  <img src={cat.image} alt={cat.label} />
-                </div>
-                <span className={`category-label ${isSelected ? 'font-bold text-[#9b4de0]' : ''}`}>
-                  {cat.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       <div className="shop-filter-bar">
         <p className="results-count">
@@ -208,6 +163,7 @@ export default function ShopPage({ setCurrentPage, onAddToCart }: ShopPageProps)
               product={product}
               index={index}
               onSelectProduct={setSelectedProduct}
+              onAddToCart={onAddToCart}
             />
           ))}
         </div>

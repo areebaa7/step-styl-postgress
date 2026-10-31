@@ -155,3 +155,139 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
 }
+
+
+/* Auto-Scrolling Ticker Styles for Kids Footwear */
+.kids-fav-carousel-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.kids-fav-carousel-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  padding: 0.5rem 0.25rem 1.5rem 0.25rem;
+}
+
+.kids-ticker-track {
+  display: flex;
+  gap: 1.5rem;
+  width: max-content;
+  animation: kidsTickerScroll 45s linear infinite;
+  will-change: transform;
+}
+
+.kids-fav-carousel-container:hover .kids-ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes kidsTickerScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-33.333% - 0.75rem));
+  }
+}
+
+/* Individual Product Card for Kids */
+.kids-product-card {
+  flex: 0 0 270px;
+  cursor: pointer;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.kids-product-card:hover {
+  border-color: #9b4de0;
+  box-shadow: 0 10px 25px rgba(155, 77, 224, 0.1);
+}
+
+.kids-product-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #1F2937;
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
+  z-index: 5;
+}
+
+.kids-product-img-wrap {
+  width: 100%;
+  height: 250px;
+  background-color: #FAF8FC;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kids-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.kids-product-card:hover .kids-product-img {
+  transform: scale(1.05);
+}
+
+.kids-product-details {
+  padding: 1rem;
+}
+
+.kids-product-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kids-product-price {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7C3AED;
+  margin-bottom: 0.5rem;
+}
+
+.kids-product-link {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  transition: color 0.2s ease;
+}
+
+.kids-product-card:hover .kids-product-link {
+  color: #9b4de0;
+}
+
+@media (max-width: 768px) {
+  .kids-product-card {
+    flex: 0 0 220px;
+  }
+  .kids-product-img-wrap {
+    height: 200px;
+  }
+}

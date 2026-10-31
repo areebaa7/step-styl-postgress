@@ -930,17 +930,26 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        await sendEmail({
-          to: order.shippingEmail,
-          subject: 'We received your Step & Styl order',
-          html: buildOrderSummaryEmail({
-            title: 'Order received!',
-            order: { ...order, items: sanitizedItems },
-            message: paymentMethod === 'direct'
-              ? 'Your Online Payment order has been received. We will verify your payment receipt and process your order shortly.'
-              : 'Your Cash on Delivery order has been received. Our team will prepare it for delivery shortly.',
-          }),
-        }).catch((err) => console.error('Order email delivery failed in background:', err));
+        try {
+          await sendEmail({
+            to: order.shippingEmail,
+            subject: 'We received your Step & Styl order',
+            html: buildOrderSummaryEmail({
+              title: 'Order received!',
+              order: { ...order, items: sanitizedItems },
+              message: paymentMethod === 'direct'
+                ? 'Your Online Payment order has been received. We will verify your payment receipt and process your order shortly.'
+                : 'Your Cash on Delivery order has been received. Our team will prepare it for delivery shortly.',
+            }),
+          });
+        } catch (emailErr: any) {
+          console.error('[ORDER EMAIL DISPATCH ERROR]', {
+            orderId: order.id,
+            to: order.shippingEmail,
+            errorMessage: emailErr?.message || String(emailErr),
+            errorCode: emailErr?.code,
+          });
+        }
       } catch (bgError) {
         console.error('Post-checkout background processing error:', bgError);
       }

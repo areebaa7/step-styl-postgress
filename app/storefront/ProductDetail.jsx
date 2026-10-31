@@ -15,10 +15,10 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
   }, []);
 
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('39');
+  const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
-  const [productDetailsOpen, setProductDetailsOpen] = useState(true);
+  const [productDetailsOpen, setProductDetailsOpen] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [addedNotification, setAddedNotification] = useState(false);
   const [stockWarning, setStockWarning] = useState(null);
@@ -73,53 +73,120 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
   const activeDescription = matchedVariant?.description || product.description || 'Crafted with precision for style and day-long wearability.';
 
   const productSpecs = useMemo(() => {
-    const raw = product.specifications || product.details || {};
-    let obj = {};
+    const raw = product.specifications || product.details;
+    if (!raw) return [];
 
-    if (typeof raw === 'string') {
-      try {
-        obj = JSON.parse(raw);
-      } catch {
-        raw.split('\n').forEach((line) => {
-          const [k, ...v] = line.split(':');
-          if (k && v.length) obj[k.trim()] = v.join(':').trim();
-        });
-      }
-    } else if (typeof raw === 'object' && raw !== null) {
-      obj = { ...raw };
-    }
+    let entries = [];
 
-    const findVal = (...keys) => {
-      for (const k of keys) {
-        for (const [entryKey, entryVal] of Object.entries(obj)) {
-          if (entryKey.toLowerCase().replace(/[\s_-]/g, '') === k.toLowerCase().replace(/[\s_-]/g, '')) {
-            if (entryVal && String(entryVal).trim()) return String(entryVal).trim();
+    if (Array.isArray(raw)) {
+      entries = raw
+        .map((item) => {
+          if (Array.isArray(item) && item.length >= 2) return [item[0], item[1]];
+          if (item && typeof item === 'object') {
+            const key = item.label || item.key || item.name || Object.keys(item)[0];
+            const val = item.value || (key ? item[key] : null);
+            return [key, val];
           }
+          return null;
+        })
+        .filter(Boolean);
+    } else if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            entries = parsed
+              .map((item) => {
+                if (Array.isArray(item) && item.length >= 2) return [item[0], item[1]];
+                if (item && typeof item === 'object') {
+                  const key = item.label || item.key || item.name || Object.keys(item)[0];
+                  const val = item.value || (key ? item[key] : null);
+                  return [key, val];
+                }
+                return null;
+              })
+              .filter(Boolean);
+          } else if (parsed && typeof parsed === 'object') {
+            entries = Object.entries(parsed);
+          }
+        } catch {
+          // Fall through to newline split
         }
       }
-      return null;
-    };
-
-    const embellishment = findVal('embellishment', 'details') || 'None / Clean Finish';
-    const heelType = findVal('heeltype', 'heel', 'sole_type') || 'Standard Sole';
-    const heelHeight = findVal('heelheight', 'height') || 'Flat / 1.0 inch';
-    const liningMaterial = findVal('liningmaterial', 'lining', 'inner') || 'Breathable Synthetic PU';
-    const shoeSole = findVal('shoesole', 'sole', 'outsole') || 'Non-Slip Durable Sheet';
-    const upperMaterial = findVal('uppermaterial', 'material', 'upper') || 'Premium Synthetic Leather';
-
-    const knownKeys = ['embellishment', 'heeltype', 'heelheight', 'liningmaterial', 'shoesole', 'uppermaterial', 'details', 'heel', 'height', 'lining', 'inner', 'sole', 'outsole', 'material', 'upper'];
-    const extraSpecs = [];
-    for (const [k, v] of Object.entries(obj)) {
-      const normalizedK = k.toLowerCase().replace(/[\s_-]/g, '');
-      if (!knownKeys.includes(normalizedK) && v && String(v).trim()) {
-        extraSpecs.push({ label: k, value: String(v).trim() });
+      if (entries.length === 0 && trimmed) {
+        entries = trimmed
+          .split('\n')
+          .map((line) => {
+            const idx = line.indexOf(':');
+            if (idx > -1) {
+              return [line.slice(0, idx).trim(), line.slice(idx + 1).trim()];
+            }
+            return null;
+          })
+          .filter(Boolean);
       }
+    } else if (typeof raw === 'object' && raw !== null) {
+      entries = Object.entries(raw);
     }
 
-    return { embellishment, heelType, heelHeight, liningMaterial, shoeSole, upperMaterial, extraSpecs };
+    return entries
+      .map(([key, val]) => {
+        const label = String(key || '').trim();
+        const value = String(val ?? '').trim();
+        if (!label || !value) return null;
+
+        let formattedLabel = label;
+        if (!label.includes(' ')) {
+          formattedLabel = label
+            .replace(/_/g, ' ')
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+        }
+        return { label: formattedLabel, value };
+      })
+      .filter(Boolean);
   }, [product.specifications, product.details]);
 
-  const availableSizes = ['36', '37', '39', '40', '41'];
+  const availableSizes = useMemo(() => {
+    let raw = [];
+    if (Array.isArray(product.sizes) && product.sizes.length > 0) {
+      raw = [...raw, ...product.sizes];
+    }
+    if (Array.isArray(product.shoeSizes) && product.shoeSizes.length > 0) {
+      raw = [...raw, ...product.shoeSizes];
+    }
+    const variantList = product.variants || product.colorVariants || [];
+    if (Array.isArray(variantList) && variantList.length > 0) {
+      const vSizes = variantList.map((v) => v.size).filter(Boolean);
+      raw = [...raw, ...vSizes];
+    }
+
+    // Deduplicate and trim all size values (guarantees each size appears only once)
+    const uniqueSizes = Array.from(
+      new Set(
+        raw
+          .map((s) => (s !== undefined && s !== null ? String(s).trim() : ''))
+          .filter(Boolean)
+      )
+    );
+
+    if (uniqueSizes.length === 0) {
+      return ['36', '37', '38', '39', '40', '41'];
+    }
+
+    // Sort numerically / logically from smallest to largest
+    uniqueSizes.sort((a, b) => {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      return a.localeCompare(b, undefined, { numeric: true });
+    });
+
+    return uniqueSizes;
+  }, [product.sizes, product.shoeSizes, product.variants, product.colorVariants]);
   const chosenColor = (product.colors && product.colors.length > 0) ? (product.colors[selectedColorIndex] || '#000000') : null;
 
   const currentVariant = useMemo(() => {
@@ -360,7 +427,9 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
           {/* Sizes */}
           <div className="mb-4 w-full max-w-full">
             <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-semibold text-gray-800 uppercase tracking-wide">Select Size (EU):</label>
+              <label className="text-xs font-semibold text-gray-800 uppercase tracking-wide">
+                Select Size (EU): {selectedSize ? <span className="text-purple-700 font-bold ml-1">Size {selectedSize}</span> : <span className="text-red-500 font-normal ml-1 normal-case">(Please Choose)</span>}
+              </label>
               <button className="text-xs text-[#9b4de0] font-semibold underline bg-transparent border-none cursor-pointer flex items-center gap-1" onClick={() => setShowSizeChart(true)}>
                 <Ruler size={13} /> Size Chart
               </button>
@@ -495,36 +564,38 @@ export default function ProductDetail({ product, onBack, onAddToCart, setCurrent
           </div>
 
           {/* Product Specifications Section */}
-          <div className="mt-3 w-full max-w-full box-border">
-            <div className="bg-[#F9F8F6] rounded-lg overflow-hidden w-full">
-              <button className="w-full bg-transparent border-none py-3 px-4 flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-wide cursor-pointer hover:bg-[#F3F2EE]" onClick={() => setProductDetailsOpen(!productDetailsOpen)}>
-                <span>Product Specifications</span>
-                {productDetailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </button>
-              <AnimatePresence>
-                {productDetailsOpen && (
-                  <motion.div 
-                    className="px-4 pb-3 text-xs text-gray-600 leading-relaxed w-full box-border"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    <ul className="list-none p-0 m-0 flex flex-col gap-1.5">
-                      <li className="break-words">Embellishment: <strong className="text-gray-900">{productSpecs.embellishment}</strong></li>
-                      <li className="break-words">Heel Type: <strong className="text-gray-900">{productSpecs.heelType}</strong></li>
-                      <li className="break-words">Heel Height: <strong className="text-gray-900">{productSpecs.heelHeight}</strong></li>
-                      <li className="break-words">Lining Material: <strong className="text-gray-900">{productSpecs.liningMaterial}</strong></li>
-                      <li className="break-words">Shoe Sole: <strong className="text-gray-900">{productSpecs.shoeSole}</strong></li>
-                      <li className="break-words">Upper Material: <strong className="text-gray-900">{productSpecs.upperMaterial}</strong></li>
-                      {productSpecs.extraSpecs && productSpecs.extraSpecs.map((spec, idx) => (
-                        <li key={`extra-${idx}`} className="break-words">{spec.label}: <strong className="text-gray-900">{spec.value}</strong></li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          {productSpecs && productSpecs.length > 0 && (
+            <div className="mt-3 w-full max-w-full box-border">
+              <div className="bg-[#F9F8F6] rounded-lg overflow-hidden w-full">
+                <button
+                  type="button"
+                  className="w-full bg-transparent border-none py-3 px-4 flex justify-between items-center text-xs font-bold text-gray-900 uppercase tracking-wide cursor-pointer hover:bg-[#F3F2EE]"
+                  onClick={() => setProductDetailsOpen((prev) => !prev)}
+                >
+                  <span>Product Specifications</span>
+                  {productDetailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                <AnimatePresence>
+                  {productDetailsOpen && (
+                    <motion.div 
+                      className="px-4 pb-3 text-xs text-gray-600 leading-relaxed w-full box-border"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      <ul className="list-none p-0 m-0 flex flex-col gap-1.5">
+                        {productSpecs.map((spec, idx) => (
+                          <li key={`spec-${idx}`} className="break-words">
+                            {spec.label}: <strong className="text-gray-900">{spec.value}</strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </div>

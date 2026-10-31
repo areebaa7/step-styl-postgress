@@ -100,6 +100,18 @@ export default function WomenFavorites({ setCurrentPage }: { setCurrentPage: (pa
         </motion.div>
 
         {/* 2. Infinite Scrolling Product Carousel Underneath */}
+        <div className="flex justify-between items-center px-2 mb-2 mt-4">
+          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
+            Women's Trending Footwear
+          </h3>
+          <button 
+            type="button"
+            onClick={() => setCurrentPage('women')}
+            className="text-xs font-bold uppercase tracking-wider text-purple-700 hover:text-black transition-colors cursor-pointer"
+          >
+            View Women's Collection &rarr;
+          </button>
+        </div>
         <div className="women-fav-carousel-container">
           {products.length > 0 && (
             <div className="women-fav-carousel-wrapper">

@@ -1,4 +1,5 @@
 // app/storefront/utils/shopApi.js
+import { getProductDiscountBadge } from './discount';
 
 /**
  * Robust and safe product fetcher with guaranteed fallback and zero crashes
@@ -69,6 +70,7 @@ export async function fetchProducts(genderOrCategory = null) {
 
       const rawPrice = Number(product.price) || 0;
       const rawSalePrice = product.salePrice ? Number(product.salePrice) : null;
+      const discountBadge = getProductDiscountBadge(product);
 
       return {
         id: String(product.id || product.slug || Math.random().toString(36).slice(2)),
@@ -78,7 +80,9 @@ export async function fetchProducts(genderOrCategory = null) {
         formattedPrice: `Rs.${rawPrice.toLocaleString()}`,
         originalPrice: rawSalePrice,
         formattedOriginalPrice: rawSalePrice ? `Rs.${rawSalePrice.toLocaleString()}` : null,
-        discount: product.discount ? `${product.discount}% OFF` : null,
+        compareAtPrice: rawSalePrice,
+        discount: discountBadge,
+        discountPercentage: discountBadge ? parseInt(discountBadge, 10) : 0,
         image: product.image || (Array.isArray(product.images) && product.images[0]) || '/logo_main.png',
         images: Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.image].filter(Boolean),
         description: product.description || '',
@@ -87,7 +91,7 @@ export async function fetchProducts(genderOrCategory = null) {
         category: (product.category || 'footwear').toLowerCase(),
         collection: product.collection?.name || product.collection || '',
         collectionId: product.collectionId || null,
-        sizes: Array.isArray(product.sizes) && product.sizes.length > 0 ? product.sizes : ['36', '37', '38', '39', '40'],
+        sizes: Array.isArray(product.sizes) && product.sizes.length > 0 ? Array.from(new Set(product.sizes.map(String).map((s) => s.trim()).filter(Boolean))) : ['36', '37', '38', '39', '40'],
         colors: Array.isArray(product.colors) && product.colors.length > 0 ? product.colors : ['#1F2937'],
         variants: variants,
         colorVariants: variants,
